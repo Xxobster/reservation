@@ -240,10 +240,6 @@ onUnmounted(() => {
           <template #card="slotProps">
             <RestaurantTable
               :table="slotProps.item"
-              @on-freed-table="
-                getTables();
-                getReservations();
-              "
             />
           </template>
         </GridContainer>
