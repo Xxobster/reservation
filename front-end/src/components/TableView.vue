@@ -33,6 +33,15 @@ const toUpperCase = (str) => {
 const isResStatusMissed = (resStatus) => {
   return resStatus === "missed";
 };
+
+const getStatusClass = (status) => {
+  switch (status) {
+    case 'seated': return 'status-seated';
+    case 'missed': return 'status-missed';
+    case 'pending': return 'status-pending';
+    default: return '';
+  }
+};
 const cancelReservation = async (item) => {
   try {
     const res = await reservationAPI.cancelReservation(item.id);
@@ -61,37 +70,38 @@ const cancelReservation = async (item) => {
             {{ item[key] ?? "—" }}
           </td>
           <td>
-            <div v-if="item.resStatus === 'pending'" class="actions">
-              <ButtonAction
-                text="Seat"
-                color="#22c55e"
-                @click="
-                  openPopup('Choose Table');
-                  passItemData(item);
-                "
-              />
-              <ButtonAction
-                text="Edit"
-                color="#3b82f6"
-                @click="
-                  openPopup('Edit Reservation');
-                  passItemData(item);
-                "
-              />
-              <ButtonAction
-                text="Cancel"
-                color="#ef4444"
-                @click="cancelReservation(item)"
-              />
-            </div>
-            <div class="status" v-else>
-              <p
-                :class="
-                  isResStatusMissed(item.resStatus) ? 'redColor' : 'blueColor'
-                "
+            <div class="actions-row">
+              <span
+                class="status-badge"
+                :class="getStatusClass(item.resStatus)"
               >
                 {{ toUpperCase(item.resStatus) }}
-              </p>
+              </span>
+              <div class="actions">
+                <ButtonAction
+                  v-if="item.resStatus === 'pending'"
+                  text="Seat"
+                  color="#22c55e"
+                  @click="
+                    openPopup('Choose Table');
+                    passItemData(item);
+                  "
+                />
+                <ButtonAction
+                  v-if="item.resStatus !== 'missed'"
+                  text="Move"
+                  color="#f59e0b"
+                  @click="
+                    openPopup('Choose Table');
+                    passItemData(item);
+                  "
+                />
+                <ButtonAction
+                  text="Delete"
+                  color="#ef4444"
+                  @click="cancelReservation(item)"
+                />
+              </div>
             </div>
           </td>
         </tr>
@@ -147,20 +157,40 @@ table {
   padding-bottom: 10px;
   padding-top: 10px;
 }
+.actions-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 5px;
+}
 .actions {
   display: flex;
   padding-left: 10px;
   padding-right: 10px;
-  gap: 2px;
+  gap: 4px;
   justify-content: center;
   align-items: center;
-  flex-direction: column;
+  flex-wrap: wrap;
 }
-.status {
-  padding-top: 10px;
-  padding-bottom: 10px;
-  font-size: 13px;
+.status-badge {
+  font-size: 11px;
   font-family: "Inter-Bold";
+  padding: 2px 8px;
+  border-radius: 10px;
+  text-transform: uppercase;
+}
+.status-seated {
+  background-color: #22c55e;
+  color: white;
+}
+.status-missed {
+  background-color: #ef4444;
+  color: white;
+}
+.status-pending {
+  background-color: #f59e0b;
+  color: white;
 }
 
 .redColor {

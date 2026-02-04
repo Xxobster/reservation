@@ -14,6 +14,21 @@ const cssProps = computed(() => {
   };
 });
 
+// Get the number of booked seats (occupied)
+const bookedSeats = computed(() => {
+  return parseInt(props.table?.bookedSeats) || 0;
+});
+
+// Check if a specific seat is occupied
+const isSeatOccupied = (seatIndex) => {
+  return seatIndex <= bookedSeats.value;
+};
+
+// Check if table has any occupied seats
+const hasOccupiedSeats = computed(() => {
+  return bookedSeats.value > 0;
+});
+
 const freeTable = async (id) => {
   try {
     const res = await tableAPI.freeTable(id);
@@ -28,10 +43,10 @@ const freeTable = async (id) => {
   <div class="main-wrapper">
     <div class="header">
       <div>{{ props.table?.name }}</div>
-      <div class="table-status" v-show="props.table.isOccupied">Occupied</div>
+      <div class="table-status" v-show="hasOccupiedSeats">{{ bookedSeats }}/{{ props.table?.capacity }} Occupied</div>
       <div
         class="free-table-button"
-        v-show="props.table.isOccupied"
+        v-show="hasOccupiedSeats"
         @click="freeTable(props.table.id)"
       >
         Free
@@ -41,7 +56,7 @@ const freeTable = async (id) => {
       <div class="seats-wrapper" :style="cssProps">
         <div
           class="circle"
-          :class="{ blackColor: props.table.isOccupied }"
+          :class="{ occupiedColor: isSeatOccupied(seat) }"
           v-for="seat in props.table?.capacity"
           :key="seat"
         ></div>
@@ -116,11 +131,11 @@ const freeTable = async (id) => {
 .circle {
   width: 15px;
   height: 15px;
-  background-color: var(--primary-white);
+  background-color: #22c55e;
   border-radius: 100%;
 }
-.blackColor {
-  background-color: var(--primary-black);
+.occupiedColor {
+  background-color: #1a1a1a;
 }
 
 @media screen and (min-width: 1024px) {

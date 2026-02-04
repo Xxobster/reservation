@@ -29,7 +29,7 @@ module.exports = {
           model: "Reservations",
           key: "id",
         },
-        onDelete: "CASCADE",
+        onDelete: "SET NULL",
         onUpdate: "CASCADE",
       },
       createdAt: {

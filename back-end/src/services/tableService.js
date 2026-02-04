@@ -1,5 +1,5 @@
-const getAllTables = async (tableDAO) => {
-  return await tableDAO.findAllTables();
+const getAllTables = async (tableDAO, date = null, time = null) => {
+  return await tableDAO.findAllTables(date, time);
 };
 
 const registerTable = async (tableDAO, { name, capacity }) => {

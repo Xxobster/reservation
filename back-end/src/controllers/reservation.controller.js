@@ -4,7 +4,8 @@ const tableDAO = require("../DAOs/table.dao");
 
 const getAllHandler = async (req, res) => {
   const reservations = await reservationService.getAllReservations(
-    reservationDAO
+    reservationDAO,
+    tableDAO
   );
 
   return res.status(200).json({
@@ -16,7 +17,7 @@ const getAllHandler = async (req, res) => {
 const registerHandler = async (req, res) => {
   const payload = req.body;
 
-  await reservationService.registerReservation(
+  const result = await reservationService.registerReservation(
     reservationDAO,
     payload,
     tableDAO
@@ -25,6 +26,7 @@ const registerHandler = async (req, res) => {
   return res.status(201).json({
     success: true,
     message: "Successfully registered the reservation!",
+    confirmation: result.confirmation,
   });
 };
 

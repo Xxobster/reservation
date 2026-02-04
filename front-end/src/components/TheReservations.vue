@@ -15,7 +15,7 @@ import reservationAPI from "@/services/reservationAPI";
 import tableAPI from "@/services/tableAPI";
 import dateNavigator from "@/utils/dateNavigator";
 
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 
 const observer = ref({});
 const allTablesRef = ref({});
@@ -23,22 +23,47 @@ const allTablesRef = ref({});
 const fields = ref({
   name: "Name",
   phone: "Phone",
-  resTime: "Reservation Time",
-  tableType: "Table",
+  resTime: "Time",
+  tableNumber: "Table",
+  tableType: "Type",
+  seatingType: "Seating",
 });
-
 
 const reservations = ref(null);
 const tables = ref(null);
 const currDate = ref(dateNavigator.setToday());
 
+// Time slot management (11:00 AM to 9:00 PM - last booking slot)
+const timeSlots = [
+  "11:00", "11:30", "12:00", "12:30", "13:00", "13:30",
+  "14:00", "14:30", "15:00", "15:30", "16:00", "16:30",
+  "17:00", "17:30", "18:00", "18:30", "19:00", "19:30",
+  "20:00", "20:30", "21:00"
+];
+
+// Get current time slot (rounded to nearest 30 min)
+const getCurrentTimeSlot = () => {
+  const now = new Date();
+  const hours = now.getHours();
+  const minutes = now.getMinutes() >= 30 ? 30 : 0;
+  const time = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  // Return the slot or default to 11:00 if before opening, 21:00 if after last slot
+  if (time < "11:00") return "11:00";
+  if (time > "21:00") return "21:00";
+  return time;
+};
+
+const currTime = ref(getCurrentTimeSlot());
+const currTimeIndex = computed(() => timeSlots.indexOf(currTime.value));
+
 const freeTables = computed(() => {
-  return tables.value.filter((table) => !table.isOccupied);
+  return tables.value ? tables.value.filter((table) => !table.isOccupied) : [];
 });
+
 const filterReservations = computed(() => {
-  return reservations.value.filter(
+  return reservations.value ? reservations.value.filter(
     (reservation) => reservation.resDate === currDate.value
-  );
+  ) : [];
 });
 
 const isPopupOpen = ref(false);
@@ -56,9 +81,8 @@ const getReservations = async () => {
 
 const getTables = async () => {
   try {
-    const res = await tableAPI.getAllTables();
+    const res = await tableAPI.getAllTables(currDate.value, currTime.value);
     tables.value = res.data.collection;
-    console.log(tables.value);
   } catch (err) {
     console.log(err);
   }
@@ -67,8 +91,14 @@ const getTables = async () => {
 await getReservations();
 await getTables();
 
+// Watch for date/time changes and refresh tables
+watch([currDate, currTime], async () => {
+  await getTables();
+});
+
 const refreshReservations = async (isEditOpen = false) => {
   await getReservations();
+  await getTables();
   if (isEditOpen)
     setTimeout(() => {
       isPopupOpen.value = false;
@@ -82,16 +112,37 @@ const refreshTables = async () => {
   }, 2000);
 };
 
+// Date navigation
 const today = () => {
   currDate.value = dateNavigator.setToday();
+  currTime.value = getCurrentTimeSlot();
 };
 
-const prev = () => {
+const prevDay = () => {
   currDate.value = dateNavigator.setPrevDay(currDate.value);
 };
 
-const next = () => {
+const nextDay = () => {
   currDate.value = dateNavigator.setNextDay(currDate.value);
+};
+
+// Time navigation
+const prevTime = () => {
+  const idx = currTimeIndex.value;
+  if (idx > 0) {
+    currTime.value = timeSlots[idx - 1];
+  }
+};
+
+const nextTime = () => {
+  const idx = currTimeIndex.value;
+  if (idx < timeSlots.length - 1) {
+    currTime.value = timeSlots[idx + 1];
+  }
+};
+
+const setTimeNow = () => {
+  currTime.value = getCurrentTimeSlot();
 };
 
 const openPopup = (popup) => {
@@ -101,7 +152,6 @@ const openPopup = (popup) => {
 
 const assignSelectedReservation = (reservation) => {
   selectedReservation.value = reservation;
-  console.log(selectedReservation.value);
 };
 
 // callback being called on intersection
@@ -159,9 +209,9 @@ onUnmounted(() => {
       <div class="reservations-wrapper">
         <h1>Reservations for {{ currDate }}</h1>
         <div class="date-navigation">
-          <LeftArrowIcon class="vector" @click="prev()" />
+          <LeftArrowIcon class="vector" @click="prevDay()" />
           <ButtonFilled text="Today" @click="today()" />
-          <RightArrowIcon class="vector" @click="next()" />
+          <RightArrowIcon class="vector" @click="nextDay()" />
         </div>
         <div class="table-wrapper">
           <TableView
@@ -175,6 +225,17 @@ onUnmounted(() => {
       </div>
       <div class="all-tables" ref="allTablesRef">
         <h1>Tables</h1>
+        <div class="time-navigation">
+          <LeftArrowIcon class="vector time-vector" @click="prevTime()" :class="{ disabled: currTimeIndex <= 0 }" />
+          <div class="time-selector">
+            <select v-model="currTime" class="time-select">
+              <option v-for="slot in timeSlots" :key="slot" :value="slot">{{ slot }}</option>
+            </select>
+            <ButtonFilled text="Now" @click="setTimeNow()" class="now-btn" />
+          </div>
+          <RightArrowIcon class="vector time-vector" @click="nextTime()" :class="{ disabled: currTimeIndex >= timeSlots.length - 1 }" />
+        </div>
+        <p class="time-info">Showing table availability for {{ currDate }} at {{ currTime }}</p>
         <GridContainer :collection="tables">
           <template #card="slotProps">
             <RestaurantTable
@@ -271,6 +332,61 @@ onUnmounted(() => {
 }
 .button {
   width: 200px;
+}
+
+.time-navigation {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  width: 100%;
+  margin: 20px auto;
+  align-items: center;
+}
+
+.time-selector {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.time-select {
+  padding: 12px 20px;
+  font-size: 1.2em;
+  font-weight: bold;
+  background: var(--primary-black);
+  color: var(--snow-white);
+  border: 2px solid var(--lighter-gray);
+  border-radius: 8px;
+  cursor: pointer;
+  min-width: 120px;
+  text-align: center;
+}
+
+.time-vector {
+  font-size: 50px !important;
+  transition: 0.2s ease-in;
+}
+
+.time-vector.disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.time-vector:not(.disabled):hover {
+  color: var(--primary-black);
+  transform: scale(1.1);
+}
+
+.now-btn {
+  padding: 10px 15px !important;
+  font-size: 0.9em !important;
+}
+
+.time-info {
+  text-align: center;
+  color: var(--darker-gray);
+  font-size: 1.1em;
+  margin-bottom: 20px;
 }
 
 @media screen and (min-width: 1024px) {

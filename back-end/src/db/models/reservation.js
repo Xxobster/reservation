@@ -77,6 +77,26 @@ module.exports = (sequelize, DataTypes) => {
           key: "id",
         },
       },
+      durationMin: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 120,
+      },
+      table_type_req: {
+        type: DataTypes.STRING(20),
+        allowNull: false,
+        defaultValue: "standard",
+      },
+      is_private_req: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
+      },
+      seating_type_req: {
+        type: DataTypes.STRING(20),
+        allowNull: false,
+        defaultValue: "chairs",
+      },
     },
     {
      sequelize,

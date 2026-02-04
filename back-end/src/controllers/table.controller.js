@@ -3,7 +3,10 @@ const tableDAO = require("../DAOs/table.dao");
 const reservationDAO = require("../DAOs/reservation.dao");
 
 const getAllHandler = async (req, res) => {
-  const tables = await tableService.getAllTables(tableDAO);
+  // Accept optional date and time query parameters
+  const { date, time } = req.query;
+  
+  const tables = await tableService.getAllTables(tableDAO, date, time);
 
   if (tables.length === 0)
     throw {

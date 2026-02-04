@@ -7,7 +7,7 @@ const { flattenArrayObjects } = require("../utils/flattenObject");
 
 const findAllReservations = async () => {
   const reservations = await Reservation.findAll({
-    attributes: ["id", "resDate", "resTime", "resStatus", "people"],
+    attributes: ["id", "resDate", "resTime", "resStatus", "people", "tableId", "table_type_req", "seating_type_req"],
     include: [
       {
         model: Customer,
@@ -30,6 +30,36 @@ const findReservationById = async (reservationId) => {
   });
 
   return reservation;
+};
+
+// Check if a customer with the same name and phone already has a reservation on the same day
+const findExistingReservationByCustomer = async (firstName, lastName, phone, resDate) => {
+  const { QueryTypes } = db.sequelize;
+  
+  const results = await db.sequelize.query(
+    `
+    SELECT r.*, c.firstName, c.lastName, c.phone
+    FROM Reservations r
+    JOIN Customers c ON r.customerId = c.id
+    WHERE LOWER(c.firstName) = LOWER(:firstName)
+      AND LOWER(c.lastName) = LOWER(:lastName)
+      AND c.phone = :phone
+      AND r.resDate = :resDate
+      AND r.resStatus != 'missed'
+    LIMIT 1
+    `,
+    {
+      replacements: {
+        firstName,
+        lastName,
+        phone,
+        resDate,
+      },
+      type: QueryTypes.SELECT,
+    }
+  );
+
+  return results.length > 0 ? results[0] : null;
 };
 
 const createCustomer = async (customerDetails, t = null) => {
@@ -55,6 +85,7 @@ const createReservation = async (resDetails) => {
     durationMin,
     table_type_req,
     is_private_req,
+    seating_type_req,
     ...customerDetails
   } = resDetails;
 
@@ -71,6 +102,7 @@ const createReservation = async (resDetails) => {
         durationMin,
         table_type_req,
         is_private_req,
+        seating_type_req,
       },
       { transaction: t }
     );
@@ -102,17 +134,24 @@ const setReservationStatus = async (reservation, status) => {
 };
 
 const setReservationTable = async (reservationId, tableId) => {
-  await Table.update(
-    {
-      isOccupied: true,
-      reservationId: reservationId,
-    },
-    {
-      where: {
-        id: tableId,
+  // Get the table to check if it's raclette (shared) or standard (exclusive)
+  const table = await Table.findOne({ where: { id: tableId } });
+  
+  // Only mark table as occupied for standard (private) tables
+  // Raclette tables can have multiple reservations sharing seats
+  if (table && table.table_type !== 'raclette') {
+    await Table.update(
+      {
+        isOccupied: true,
+        reservationId: reservationId,
       },
-    }
-  );
+      {
+        where: {
+          id: tableId,
+        },
+      }
+    );
+  }
 
   return await Reservation.update(
     {
@@ -135,6 +174,7 @@ module.exports = {
   updateReservation,
   deleteReservation,
   findReservationById,
+  findExistingReservationByCustomer,
   setReservationTable,
   setReservationStatus,
 };

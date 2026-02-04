@@ -57,6 +57,21 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.BOOLEAN,
         defaultValue: false,
       },
+      table_type: {
+        type: DataTypes.STRING(20),
+        allowNull: false,
+        defaultValue: "standard",
+      },
+      seating_type: {
+        type: DataTypes.STRING(20),
+        allowNull: false,
+        defaultValue: "chairs",
+      },
+      is_private: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
+      },
     },
     {
       sequelize,
