@@ -1,3 +1,5 @@
+> **This code is an optimization of https://github.com/slavyanHristov/restaurant-table-reservation-system for my specific needs. So thanks to him, please check his own repo first if you want to use it. CREDITS TO slavyanHristov, Thanks for sharing :)**
+
 <h1 align="center">
 <img src="https://github.com/slavyanHristov/restaurant-table-reservation-system/blob/feature/readme/screenshots/rtrs.png" width="300" />
 <br>
