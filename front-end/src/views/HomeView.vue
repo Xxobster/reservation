@@ -1,6 +1,5 @@
 <script setup>
 import ButtonFilled from "@/components/ButtonFilled.vue";
-import ButtonOutlined from "@/components/ButtonOutlined.vue";
 
 import { useRouter } from "vue-router";
 
@@ -20,11 +19,10 @@ const changeRoute = (routeName) => router.push({ name: routeName });
           text="New Reservation"
           @click="changeRoute('new-reservation')"
         />
-        <ButtonOutlined text="Search" @click="changeRoute('search')" />
       </div>
     </div>
     <div class="right-section">
-      <img src="@/assets/images/hero-section-img.png" alt="food" />
+      <img src="/img/raclette2.webp" alt="food" />
     </div>
   </div>
 </template>
