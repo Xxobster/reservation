@@ -43,11 +43,54 @@ const getStatusClass = (status) => {
   }
 };
 
+// Calculate end time based on start time and table type
+const calculateEndTime = (startTime, tableType) => {
+  if (!startTime) return '';
+  const [hours, minutes] = startTime.split(':').map(Number);
+  const durationMin = tableType === 'raclette' ? 120 : 60;
+  const endDate = new Date(2000, 0, 1, hours, minutes + durationMin);
+  return `${endDate.getHours().toString().padStart(2, '0')}:${endDate.getMinutes().toString().padStart(2, '0')}`;
+};
+
+// Format table type for display
+const formatTableType = (tableType) => {
+  if (!tableType) return 'Standard';
+  return tableType.toLowerCase() === 'raclette' ? 'Raclette' : 'Standard';
+};
+
+// Format seating type for display
+const formatSeatingType = (seatingType) => {
+  if (!seatingType) return 'chairs';
+  return seatingType.toLowerCase() === 'floor' ? 'floor seating' : 'chairs';
+};
+
 // Format phone number for WhatsApp URL (remove spaces, +, -, etc.)
-const getWhatsAppUrl = (phone) => {
-  if (!phone) return null;
-  const cleanPhone = phone.replace(/[\s\-\+\(\)]/g, '');
-  return `https://wa.me/${cleanPhone}`;
+const getWhatsAppUrl = (item) => {
+  if (!item.phone) return null;
+  const cleanPhone = item.phone.replace(/[\s\-\+\(\)]/g, '');
+  
+  // Build the message
+  const firstName = item.firstName || 'Guest';
+  const resDate = item.resDate || '';
+  const resTime = item.resTime || '';
+  const tableType = formatTableType(item.tableType || item.table_type_req);
+  const seatingType = formatSeatingType(item.seatingType || item.seating_type_req);
+  const endTime = calculateEndTime(resTime, (item.tableType || item.table_type_req || '').toLowerCase());
+  
+  const message = `Dear ${firstName},
+
+Thank you for your reservation at S&M Bistro on ${resDate}, from ${resTime} to ${endTime}, for ${tableType} ${seatingType}.
+
+Please note that we do not accept credit or debit cards. Cash withdrawals are available at Dalom (port), Adam's Bar, Datta Banana Leaf, and other nearby locations, with varying fees.
+
+We also accept Revolut and Wise (5% surcharge), as well as Ezy Kip, Moreta Pay, and Loca Pay (app activation takes up to 24 hours). Payment details are available here: http://smbistro.duckdns.org/img/payments.png
+
+We look forward to welcoming you.
+
+Warm regards,
+The S&M Team`;
+
+  return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
 };
 
 const cancelReservation = async (item) => {
@@ -79,7 +122,7 @@ const cancelReservation = async (item) => {
               {{ item[key] ?? "—" }}
               <a 
                 v-if="item[key]"
-                :href="getWhatsAppUrl(item[key])" 
+                :href="getWhatsAppUrl(item)" 
                 target="_blank" 
                 class="whatsapp-btn"
                 title="Contact via WhatsApp"

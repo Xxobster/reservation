@@ -243,6 +243,10 @@ const resetForm = () => {
             <p>Please arrive on time!</p>
           </div>
           
+          <div class="payment-methods">
+            <img src="/img/payments.png" alt="Accepted payment methods" />
+          </div>
+          
           <button type="button" class="new-reservation-btn" @click="resetForm">Make Another Reservation</button>
         </div>
 
@@ -385,6 +389,20 @@ const resetForm = () => {
 .confirmation-notice p {
   margin: 5px 0;
   color: #fef3c7;
+}
+
+.payment-methods {
+  margin: 20px 0;
+  padding: 15px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 10px;
+}
+
+.payment-methods img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
 }
 
 .new-reservation-btn {
