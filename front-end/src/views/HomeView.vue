@@ -14,7 +14,7 @@ const whatsappUrl = `https://wa.me/${whatsappNumber}`;
     <!-- Hero Section -->
     <div class="hero-section">
       <div class="hero-content">
-        <img src="/img/logo-white.png" alt="S&M Bistro" class="logo" />
+        <img src="/img/logo-white.png?v=2" alt="S&M Bistro" class="logo" />
         <p class="tagline">Don Det Sunset Side</p>
         <p class="description">Artisanal Bread • French Wines • Pizza Baguette • Cheese & Cold Cuts</p>
         

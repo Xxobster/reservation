@@ -29,6 +29,9 @@ const checkWindowWidth = () => {
 onMounted(() => {
   window.addEventListener("resize", checkWindowWidth);
   checkWindowWidth();
+  router.afterEach(() => {
+    if (mobileNav.value) mobileNav.value = false;
+  });
 });
 </script>
 
@@ -37,7 +40,7 @@ onMounted(() => {
     <nav>
       <img
         class="logo"
-        src="/img/logo-white.png"
+        src="/img/logo-white.png?v=2"
         alt="S&M Bistro"
         @click="router.push({ name: 'home' })"
       />

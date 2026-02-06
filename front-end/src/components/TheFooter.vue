@@ -1,9 +1,12 @@
 <script setup>
 import NavItem from "@/components/NavItem.vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
+import { computed } from "vue";
 
 const router = useRouter();
+const route = useRoute();
 const whatsappUrl = "https://wa.me/41793917577";
+const isDeliveryPage = computed(() => route.name === "delivery");
 </script>
 
 <template>
@@ -11,7 +14,7 @@ const whatsappUrl = "https://wa.me/41793917577";
     <div class="footer-wrapper">
       <img
         class="footer-logo"
-        src="/img/logo-white.png"
+        src="/img/logo-white.png?v=2"
         alt="S&M Bistro"
         @click="router.push({ name: 'home' })"
       />
@@ -26,7 +29,7 @@ const whatsappUrl = "https://wa.me/41793917577";
             <span>📱 WhatsApp: +41 79 391 75 77</span>
           </a>
         </div>
-        <p>Don Det, Sunset Side</p>
+        <p v-if="!isDeliveryPage">Don Det, Sunset Side</p>
       </div>
       <div class="line"></div>
       <div class="copyright">© S&M Bistro Since 2567. Don Det, Laos.</div>
