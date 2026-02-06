@@ -27,6 +27,12 @@ const router = createRouter({
       // Public - no auth required
     },
     {
+      path: "/delivery",
+      name: "delivery",
+      component: () => import("../views/DeliveryView.vue"),
+      // Public - no auth required
+    },
+    {
       path: "/search",
       name: "search",
       component: () => import("../views/SearchView.vue"),

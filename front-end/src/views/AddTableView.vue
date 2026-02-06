@@ -83,24 +83,30 @@ const registerTable = async () => {
 </template>
 
 <style scoped>
+.main-wrapper {
+  background: #000;
+  min-height: 100vh;
+}
+
 .header {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   width: 100%;
-  height: 200px;
-  background: var(--lighter-gray) url("@/assets/images/add-table-header.jpg");
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: 0% 40%;
+  height: 150px;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+  border-bottom: 1px solid #1a1a1a;
 }
+
 .header h1 {
   margin-left: var(--x-spacing-mobile);
-  margin-bottom: 15px;
+  margin-bottom: 20px;
   font-size: 35px;
-  color: var(--snow-white);
-  text-shadow: 1px 1px 2px var(--primary-black);
+  color: #ffc300;
+  font-family: "Montserrat-Bold";
+  letter-spacing: 2px;
 }
+
 .form-wrapper {
   display: flex;
   justify-content: center;
@@ -109,11 +115,12 @@ const registerTable = async () => {
   margin-left: var(--x-spacing-mobile);
   margin-right: var(--x-spacing-mobile);
   align-items: center;
-  background-color: var(--primary-white);
-  padding: 20px 20px;
-  border: 1px solid var(--primary-black);
-  border-radius: 10px;
+  background-color: #0a0a0a;
+  padding: 30px 20px;
+  border: 1px solid #1a1a1a;
+  border-radius: 12px;
 }
+
 form {
   width: 80%;
   display: flex;
@@ -121,14 +128,15 @@ form {
   align-items: center;
   flex-direction: column;
 }
+
 .general-error {
   display: flex;
   align-items: center;
   gap: 5px;
   margin-top: 5px;
   margin-bottom: 15px;
-  color: var(--accent-red);
-  font-family: "Inter-Light";
+  color: #ef4444;
+  font-family: "Montserrat-Light";
 }
 
 .button {
@@ -138,6 +146,9 @@ form {
 @media screen and (min-width: 1024px) {
   .form-wrapper {
     margin: 50px var(--x-spacing-desktop) var(--x-spacing-desktop) 50px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
   }
   .header h1 {
     margin-left: var(--x-spacing-desktop);

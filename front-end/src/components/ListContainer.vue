@@ -30,8 +30,10 @@ const props = defineProps({
 <style scoped>
 .vector {
   font-size: 60px;
+  color: #666;
 }
 .item-container {
   width: 100%;
+  margin-bottom: 10px;
 }
 </style>

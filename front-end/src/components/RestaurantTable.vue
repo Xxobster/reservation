@@ -47,32 +47,40 @@ const hasOccupiedSeats = computed(() => {
 
 <style scoped>
 .main-wrapper {
-  background-color: var(--primary-red);
-  padding: 10px;
+  background: linear-gradient(135deg, #1a1a1a 0%, #252525 100%);
+  border: 1px solid #333;
+  padding: 15px;
   width: 100%;
   height: 100%;
-  border-radius: 10px;
-  transition: all 1.5s;
+  border-radius: 12px;
+  transition: all 0.3s;
 }
+
+.main-wrapper:hover {
+  border-color: #ffc300;
+  box-shadow: 0 4px 15px rgba(255, 195, 0, 0.1);
+}
+
 .main-wrapper .header {
   display: flex;
   justify-content: space-around;
   position: relative;
   align-items: center;
   grid-gap: 10px;
-  font-family: "Inter-Bold";
-  color: var(--primary-white);
+  font-family: "Montserrat-Bold";
+  color: #fff;
 }
+
 .header .table-status {
-  background-color: transparent;
-  color: var(--primary-black);
-  font-family: "Inter-Light";
+  background-color: rgba(255, 195, 0, 0.15);
+  color: #ffc300;
+  font-family: "Montserrat-Light";
   font-size: 10px;
-  border: 1px solid var(--primary-black);
-  padding-left: 5px;
-  padding-right: 5px;
+  border: 1px solid rgba(255, 195, 0, 0.3);
+  padding: 3px 8px;
   border-radius: 10px;
 }
+
 .content {
   display: flex;
   justify-content: center;
@@ -95,9 +103,12 @@ const hasOccupiedSeats = computed(() => {
   height: 15px;
   background-color: #22c55e;
   border-radius: 100%;
+  transition: background-color 0.2s;
 }
+
 .occupiedColor {
   background-color: #1a1a1a;
+  border: 1px solid #333;
 }
 
 @media screen and (min-width: 1024px) {

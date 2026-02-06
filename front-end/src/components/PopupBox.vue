@@ -38,6 +38,7 @@ const emit = defineEmits(["closeModal"]);
   position: relative;
   z-index: 20;
 }
+
 .overlay {
   position: fixed;
   top: 0;
@@ -47,20 +48,31 @@ const emit = defineEmits(["closeModal"]);
   justify-content: center;
   width: 100%;
   height: 100%;
-  background-color: var(--darkened-color);
+  background-color: rgba(0, 0, 0, 0.85);
 }
+
 button {
   appearance: none;
   background: none;
   cursor: pointer;
+  border: none;
+  color: #999;
+  font-size: 24px;
+  transition: color 0.2s;
+}
+
+button:hover {
+  color: #ffc300;
 }
 
 .popup-wrapper {
   position: relative;
   width: 40%;
   min-width: 420px;
-  background-color: var(--primary-white);
-  border-radius: 10px;
+  background-color: #111;
+  border-radius: 12px;
+  border: 1px solid #333;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
 }
 
 .popup-content {
@@ -69,20 +81,25 @@ button {
 
 .popup-wrapper .header {
   display: flex;
-  padding: 15px;
+  padding: 20px;
   justify-content: space-between;
   align-items: flex-start;
   gap: 60px;
+  border-bottom: 1px solid #222;
 }
 
 .header h1 {
   text-align: center;
+  color: #ffc300;
+  font-family: "Montserrat-Bold";
+  font-size: 1.3em;
 }
 
 .popupAnimation-enter-from,
 .popupAnimation-leave-to {
   opacity: 0;
 }
+
 .popupAnimation-enter-active,
 .popupAnimation-leave-active {
   transition: opacity 0.1s ease-out;

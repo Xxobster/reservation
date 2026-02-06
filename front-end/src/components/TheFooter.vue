@@ -1,100 +1,136 @@
 <script setup>
 import NavItem from "@/components/NavItem.vue";
-
 import { useRouter } from "vue-router";
 
 const router = useRouter();
+const whatsappUrl = "https://wa.me/41793917577";
 </script>
 
 <template>
   <footer>
     <div class="footer-wrapper">
+      <img
+        class="footer-logo"
+        src="/img/logo-white.png"
+        alt="S&M Bistro"
+        @click="router.push({ name: 'home' })"
+      />
       <nav>
-        <NavItem class="item" route-name="reservations" text="Reservations" />
-        <NavItem
-          class="item"
-          route-name="new-reservation"
-          text="New Reservation"
-        />
-        <div>
-          <img
-            class="secondary-logo"
-            src="@/assets/images/secondary-logo.png"
-            alt="secondary-logo"
-            @click="router.push({ name: 'home' })"
-          />
-        </div>
-        <NavItem class="item" route-name="search" text="Search" />
-        <NavItem class="item" route-name="add-table" text="Add Table" />
+        <NavItem class="item" route-name="new-reservation" text="Book a Table" />
+        <NavItem class="item" route-name="delivery" text="Delivery / Pick-up" />
       </nav>
+      <div class="contact-info">
+        <div class="whatsapp-row">
+          <img src="/img/qr-whatsapp.png" alt="WhatsApp QR" class="qr-whatsapp" />
+          <a :href="whatsappUrl" target="_blank" class="whatsapp-link">
+            <span>📱 WhatsApp: +41 79 391 75 77</span>
+          </a>
+        </div>
+        <p>Don Det, Sunset Side</p>
+      </div>
       <div class="line"></div>
-      <div class="copyright">© Restaurant System, Inc. 2022.</div>
-      <div class="copyright">Made by: Slavyan Hristov</div>
+      <div class="copyright">© S&M Bistro Since 2567. Don Det, Laos.</div>
     </div>
   </footer>
 </template>
 
 <style scoped>
 footer {
-  background-color: var(--primary-black);
-  font-family: "Montserrat-Normal";
-  font-weight: lighter;
+  background-color: #000;
+  border-top: 1px solid #1a1a1a;
+  font-family: "Montserrat-Light";
 }
 .footer-wrapper {
   display: flex;
   justify-content: center;
   flex-direction: column;
   align-items: center;
-  gap: 35px;
+  gap: 25px;
   width: 100%;
-  padding: 100px var(--x-spacing-mobile);
+  padding: 60px var(--x-spacing-mobile);
 }
 
-.secondary-logo {
-  height: 50px;
-  width: 50px;
+.footer-logo {
+  width: 150px;
   cursor: pointer;
+  margin-bottom: 10px;
 }
 
 nav {
   display: flex;
-  width: 100%;
-  justify-content: space-between;
+  gap: 30px;
+  justify-content: center;
   align-items: center;
   color: var(--snow-white);
 }
 
 .item {
-  width: 0;
-  flex: 1 1 0;
-  font-size: 10px;
+  font-size: 12px;
+}
+
+.contact-info {
+  text-align: center;
+}
+
+.whatsapp-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.qr-whatsapp {
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  background: #fff;
+  padding: 4px;
+  box-sizing: border-box;
+}
+
+.whatsapp-link {
+  display: inline-block;
+  color: #ffc300;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.whatsapp-link:hover {
+  color: #25D366;
+}
+
+.contact-info p {
+  font-family: "Montserrat-LightItalic";
+  font-style: italic;
+  color: #666;
+  font-size: 0.9em;
 }
 
 .line {
   height: 1px;
-  width: 70%;
-  background-color: var(--light-pink);
-  margin-left: 50px;
-  margin-right: 50px;
+  width: 200px;
+  background-color: #222;
 }
 
 .copyright {
-  color: var(--primary-gray);
-  font-size: 10px;
+  color: #444;
+  font-size: 11px;
+  font-family: "Montserrat-Light";
 }
 
 @media screen and (min-width: 1024px) {
-  .wrapper {
-    padding: 100px var(--x-spacing-desktop);
+  .footer-wrapper {
+    padding: 80px var(--x-spacing-desktop);
   }
   nav {
-    width: 80%;
+    gap: 50px;
   }
   .item {
     font-size: 14px;
   }
   .copyright {
-    font-size: 14px;
+    font-size: 12px;
   }
 }
 </style>

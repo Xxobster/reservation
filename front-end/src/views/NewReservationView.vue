@@ -104,7 +104,7 @@ const resetForm = () => {
 <template>
   <div class="main-wrapper">
     <div class="header">
-      <h1>New Reservation</h1>
+      <h1 class="title-ananias">New Reservation</h1>
     </div>
 
     <div class="form-wrapper">
@@ -259,12 +259,61 @@ const resetForm = () => {
 </template>
 
 <style scoped>
+.main-wrapper {
+  min-height: 100vh;
+  background: #000;
+  padding: 30px 20px;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.header h1 {
+  color: #ffc300;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  font-size: 2em;
+}
+.title-ananias {
+  font-family: "Ananias", Georgia, serif;
+}
+
+.form-wrapper {
+  max-width: 600px;
+  margin: 0 auto;
+  background: #0a0a0a;
+  border: 1px solid #1a1a1a;
+  border-radius: 15px;
+  padding: 30px;
+}
+
+.form-wrapper form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.textBox-group {
+  display: flex;
+  gap: 15px;
+}
+
+.textBox-group > * {
+  flex: 1;
+}
+
 .large-group-notice {
-  color: #ef4444;
-  font-size: 1.2em;
+  color: #ffc300;
+  font-size: 1em;
   margin-bottom: 20px;
-  text-align: left;
+  text-align: center;
   font-weight: 500;
+  padding: 15px;
+  background: rgba(255, 195, 0, 0.1);
+  border: 1px solid rgba(255, 195, 0, 0.3);
+  border-radius: 8px;
 }
 
 .select-group {
@@ -275,16 +324,27 @@ const resetForm = () => {
 }
 
 .select-group label {
-  margin-bottom: 5px;
+  margin-bottom: 8px;
   font-weight: 600;
+  color: #fff;
+  font-family: "Montserrat-Medium";
 }
 
 .select-group select {
-  padding: 10px;
-  border-radius: 6px;
-  border: 1px solid #555;
+  padding: 12px 15px;
+  border-radius: 8px;
+  border: 1px solid #333;
   background: #111;
   color: #fff;
+  font-size: 1em;
+  font-family: "Montserrat-Light";
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.select-group select:focus {
+  outline: none;
+  border-color: #ffc300;
 }
 
 .time-select {
@@ -292,14 +352,14 @@ const resetForm = () => {
 }
 
 .confirmation-box {
-  background: linear-gradient(135deg, #065f46 0%, #047857 100%);
-  border: 3px solid #10b981;
+  background: linear-gradient(135deg, #0d1b0f 0%, #132616 100%);
+  border: 2px solid #ffc300;
   border-radius: 16px;
   padding: 30px;
   margin: 25px 0;
   color: #fff;
   text-align: center;
-  box-shadow: 0 10px 40px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 10px 40px rgba(255, 195, 0, 0.15);
   animation: slideIn 0.5s ease-out;
 }
 
@@ -317,34 +377,38 @@ const resetForm = () => {
 .confirmation-icon {
   width: 70px;
   height: 70px;
-  background: #10b981;
+  background: #ffc300;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 40px;
   margin: 0 auto 15px;
-  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+  box-shadow: 0 4px 15px rgba(255, 195, 0, 0.4);
+  color: #000;
 }
 
 .confirmation-box h2 {
   font-size: 1.8em;
   margin: 0 0 5px 0;
-  color: #ecfdf5;
+  color: #ffc300;
   letter-spacing: 1px;
+  font-family: "Montserrat-Bold";
 }
 
 .thank-you {
-  color: #a7f3d0;
+  color: #ccc;
   font-size: 1.1em;
   margin-bottom: 20px;
+  font-family: "Montserrat-Light";
 }
 
 .confirmation-details {
-  background: rgba(0,0,0,0.25);
+  background: rgba(0,0,0,0.4);
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 20px;
+  border: 1px solid #1a1a1a;
 }
 
 .detail-row {
@@ -360,7 +424,7 @@ const resetForm = () => {
 }
 
 .detail-row.highlight {
-  background: rgba(16, 185, 129, 0.2);
+  background: rgba(255, 195, 0, 0.15);
   margin: 5px -10px;
   padding: 12px 10px;
   border-radius: 8px;
@@ -369,18 +433,20 @@ const resetForm = () => {
 
 .detail-label {
   font-size: 1em;
-  color: #a7f3d0;
+  color: #999;
+  font-family: "Montserrat-Light";
 }
 
 .detail-value {
   font-size: 1.1em;
   font-weight: bold;
   color: #fff;
+  font-family: "Montserrat-Medium";
 }
 
 .confirmation-notice {
-  background: rgba(234, 179, 8, 0.2);
-  border: 1px solid rgba(234, 179, 8, 0.5);
+  background: rgba(255, 195, 0, 0.1);
+  border: 1px solid rgba(255, 195, 0, 0.3);
   border-radius: 8px;
   padding: 15px;
   margin-bottom: 20px;
@@ -388,14 +454,16 @@ const resetForm = () => {
 
 .confirmation-notice p {
   margin: 5px 0;
-  color: #fef3c7;
+  color: #ffc300;
+  font-family: "Montserrat-Light";
 }
 
 .payment-methods {
   margin: 20px 0;
   padding: 15px;
-  background: rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.05);
   border-radius: 10px;
+  border: 1px solid #1a1a1a;
 }
 
 .payment-methods img {
@@ -406,8 +474,8 @@ const resetForm = () => {
 }
 
 .new-reservation-btn {
-  background: #fff;
-  color: #065f46;
+  background: #ffc300;
+  color: #000;
   border: none;
   padding: 14px 30px;
   border-radius: 10px;
@@ -415,12 +483,28 @@ const resetForm = () => {
   font-weight: bold;
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 15px rgba(255, 195, 0, 0.3);
+  font-family: "Montserrat-Medium";
 }
 
 .new-reservation-btn:hover {
-  background: #ecfdf5;
-  transform: scale(1.05);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+  background: #e6b000;
+  transform: scale(1.02);
+  box-shadow: 0 6px 20px rgba(255, 195, 0, 0.4);
+}
+
+@media screen and (max-width: 600px) {
+  .textBox-group {
+    flex-direction: column;
+    gap: 0;
+  }
+  
+  .form-wrapper {
+    padding: 20px;
+  }
+  
+  .header h1 {
+    font-size: 1.5em;
+  }
 }
 </style>

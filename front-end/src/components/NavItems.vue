@@ -1,14 +1,17 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from "vue";
+import { useRouter } from "vue-router";
 import NavItem from "@/components/NavItem.vue";
 
 import FoodIcon from "~icons/fluent/food-16-filled";
 import CardListIcon from "~icons/bi/card-list";
 import SearchIcon from "~icons/ant-design/search-outlined";
 import PlusIcon from "~icons/akar-icons/plus";
-import LockIcon from "~icons/mdi/lock";
 import LogoutIcon from "~icons/mdi/logout";
+import LoginIcon from "~icons/mdi/login";
+import DeliveryIcon from "~icons/mdi/truck-delivery";
 
+const router = useRouter();
 const isAdmin = ref(false);
 
 const checkAuth = () => {
@@ -19,6 +22,10 @@ const logout = () => {
   sessionStorage.removeItem("adminAuthenticated");
   isAdmin.value = false;
   window.location.href = "/";
+};
+
+const showLogin = () => {
+  router.push({ name: "home", query: { requirePin: "true" } });
 };
 
 onMounted(() => {
@@ -34,29 +41,47 @@ onUnmounted(() => {
 
 <template>
   <div class="nav-items">
-    <NavItem route-name="reservations" text="Reservations">
+    <!-- Admin only links -->
+    <NavItem v-if="isAdmin" route-name="reservations" text="Reservations">
       <template #icon>
         <CardListIcon />
       </template>
     </NavItem>
+    
+    <!-- Delivery/Pick-up - Public -->
+    <NavItem route-name="delivery" text="Delivery/Pick-up">
+      <template #icon>
+        <DeliveryIcon />
+      </template>
+    </NavItem>
+    
+    <!-- New Reservation - Public -->
     <NavItem route-name="new-reservation" text="New Reservation">
       <template #icon>
         <FoodIcon />
       </template>
     </NavItem>
-    <NavItem route-name="search" text="Search">
+    
+    <!-- Admin only links -->
+    <NavItem v-if="isAdmin" route-name="search" text="Search">
       <template #icon>
         <SearchIcon />
       </template>
     </NavItem>
-    <NavItem route-name="add-table" text="Add Table">
+    <NavItem v-if="isAdmin" route-name="add-table" text="Add Table">
       <template #icon>
         <PlusIcon />
       </template>
     </NavItem>
-    <div v-if="isAdmin" class="logout-btn" @click="logout" title="Logout">
+    
+    <!-- Login/Logout button -->
+    <div v-if="isAdmin" class="auth-btn logout" @click="logout" title="Logout">
       <LogoutIcon />
       <span>Logout</span>
+    </div>
+    <div v-else class="auth-btn login" @click="showLogin" title="Admin Login">
+      <LoginIcon />
+      <span>Login</span>
     </div>
   </div>
 </template>
@@ -71,19 +96,33 @@ onUnmounted(() => {
   align-items: center;
 }
 
-.logout-btn {
+.auth-btn {
   display: flex;
   align-items: center;
   gap: 5px;
   cursor: pointer;
-  color: #ffd700;
-  padding: 5px 10px;
+  padding: 5px 12px;
   border-radius: 5px;
   transition: all 0.2s;
+  font-size: 0.9em;
 }
 
-.logout-btn:hover {
-  background: rgba(255, 215, 0, 0.2);
+.auth-btn.logout {
+  color: #ffc300;
+  border: 1px solid #ffc300;
+}
+
+.auth-btn.logout:hover {
+  background: rgba(255, 195, 0, 0.2);
+}
+
+.auth-btn.login {
+  color: #ffc300;
+  border: 1px solid #ffc300;
+}
+
+.auth-btn.login:hover {
+  background: rgba(255, 195, 0, 0.2);
 }
 
 @media screen and (min-width: 1024px) {

@@ -43,25 +43,31 @@ const getStatusClass = (status) => {
   }
 };
 
-// Calculate end time based on start time and table type
-const calculateEndTime = (startTime, tableType) => {
-  if (!startTime) return '';
-  const [hours, minutes] = startTime.split(':').map(Number);
+// Extract start time and calculate end time based on table type
+const getTimeRange = (resTime, tableType) => {
+  if (!resTime) return { start: '', end: '' };
+  
+  // If resTime already contains a range (e.g., "20:00 - 22:00"), extract just the start time
+  const startTime = resTime.includes('-') ? resTime.split('-')[0].trim() : resTime.trim();
+  
+  // Only take first 5 characters (HH:MM)
+  const cleanStartTime = startTime.substring(0, 5);
+  
+  const [hours, minutes] = cleanStartTime.split(':').map(Number);
+  if (isNaN(hours) || isNaN(minutes)) return { start: cleanStartTime, end: '' };
+  
   const durationMin = tableType === 'raclette' ? 120 : 60;
   const endDate = new Date(2000, 0, 1, hours, minutes + durationMin);
-  return `${endDate.getHours().toString().padStart(2, '0')}:${endDate.getMinutes().toString().padStart(2, '0')}`;
+  const endTime = `${endDate.getHours().toString().padStart(2, '0')}:${endDate.getMinutes().toString().padStart(2, '0')}`;
+  
+  return { start: cleanStartTime, end: endTime };
 };
 
-// Format table type for display
-const formatTableType = (tableType) => {
-  if (!tableType) return 'Standard';
-  return tableType.toLowerCase() === 'raclette' ? 'Raclette' : 'Standard';
-};
-
-// Format seating type for display
-const formatSeatingType = (seatingType) => {
-  if (!seatingType) return 'chairs';
-  return seatingType.toLowerCase() === 'floor' ? 'floor seating' : 'chairs';
+// Format table type and seating for display in message
+const formatTableAndSeating = (tableType, seatingType) => {
+  const table = (tableType || '').toLowerCase() === 'raclette' ? 'Raclette' : 'Standard';
+  const seating = (seatingType || '').toLowerCase() === 'floor' ? 'on cushions' : 'on chairs';
+  return `for a ${table} table, ${seating}`;
 };
 
 // Format phone number for WhatsApp URL (remove spaces, +, -, etc.)
@@ -72,14 +78,14 @@ const getWhatsAppUrl = (item) => {
   // Build the message
   const firstName = item.firstName || 'Guest';
   const resDate = item.resDate || '';
-  const resTime = item.resTime || '';
-  const tableType = formatTableType(item.tableType || item.table_type_req);
-  const seatingType = formatSeatingType(item.seatingType || item.seating_type_req);
-  const endTime = calculateEndTime(resTime, (item.tableType || item.table_type_req || '').toLowerCase());
+  const tableTypeRaw = (item.tableType || item.table_type_req || '').toLowerCase();
+  const seatingTypeRaw = item.seatingType || item.seating_type_req || '';
+  const timeRange = getTimeRange(item.resTime, tableTypeRaw);
+  const tableAndSeating = formatTableAndSeating(tableTypeRaw, seatingTypeRaw);
   
   const message = `Dear ${firstName},
 
-Thank you for your reservation at S&M Bistro on ${resDate}, from ${resTime} to ${endTime}, for ${tableType} ${seatingType}.
+Thank you for your reservation at S&M Bistro on ${resDate}, from ${timeRange.start} to ${timeRange.end}, ${tableAndSeating}.
 
 Please note that we do not accept credit or debit cards. Cash withdrawals are available at Dalom (port), Adam's Bar, Datta Banana Leaf, and other nearby locations, with varying fees.
 
@@ -193,40 +199,54 @@ const cancelReservation = async (item) => {
 table {
   border-collapse: separate;
   border-spacing: 0 0px;
-  border: 1px solid var(--primary-black);
+  border: 1px solid #333;
   border-top: 0px;
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
   width: 100%;
 }
+
 .header-row {
-  color: var(--primary-white);
-  font-family: "Inter-Bold";
+  color: #000;
+  font-family: "Montserrat-Bold";
 }
+
 .header-row th {
-  height: 40px;
-  background-color: var(--primary-black);
+  height: 45px;
+  background-color: #ffc300;
 }
+
 .header-row th:first-of-type {
   border-top-left-radius: 10px;
 }
+
 .header-row th:last-of-type {
   border-top-right-radius: 10px;
 }
+
 .body-row {
-  background-color: var(--primary-white);
-  font-family: "Inter-Light";
+  background-color: #111;
+  font-family: "Montserrat-Light";
+  color: #fff;
 }
+
+.body-row:hover {
+  background-color: #1a1a1a;
+}
+
 .body-row td {
   text-align: center;
-  padding-bottom: 10px;
-  padding-top: 10px;
+  padding-bottom: 12px;
+  padding-top: 12px;
+  border-bottom: 1px solid #222;
 }
+
 .phone-cell {
   display: inline-flex;
   align-items: center;
   gap: 8px;
 }
+
 .whatsapp-btn {
   display: inline-flex;
   align-items: center;
@@ -237,13 +257,16 @@ table {
   transition: all 0.2s ease;
   text-decoration: none;
 }
+
 .whatsapp-btn:hover {
   background-color: #128C7E;
   transform: scale(1.1);
 }
+
 .whatsapp-btn svg {
   fill: white;
 }
+
 .actions-row {
   display: flex;
   flex-direction: column;
@@ -251,6 +274,7 @@ table {
   gap: 5px;
   padding: 5px;
 }
+
 .actions {
   display: flex;
   padding-left: 10px;
@@ -260,37 +284,43 @@ table {
   align-items: center;
   flex-wrap: wrap;
 }
+
 .status-badge {
   font-size: 11px;
-  font-family: "Inter-Bold";
+  font-family: "Montserrat-Bold";
   padding: 2px 8px;
   border-radius: 10px;
   text-transform: uppercase;
 }
+
 .status-seated {
   background-color: #22c55e;
   color: white;
 }
+
 .status-missed {
   background-color: #ef4444;
   color: white;
 }
+
 .status-pending {
-  background-color: #f59e0b;
-  color: white;
+  background-color: #ffc300;
+  color: #000;
 }
 
 .redColor {
-  color: var(--primary-red);
+  color: #ef4444;
 }
 
 .blueColor {
-  color: var(--primary-blue);
+  color: #3b82f6;
 }
 
 .vector {
   font-size: 40px;
+  color: #666;
 }
+
 .item-container {
   width: 100%;
 }
@@ -300,6 +330,7 @@ table {
   opacity: 0;
   filter: blur(5px);
 }
+
 .list-enter-active,
 .list-leave-active {
   transition: all 0.5s ease-out;

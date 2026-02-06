@@ -38,39 +38,55 @@ const emit = defineEmits(["update:input"]);
 
 <style scoped>
 label {
-  font-family: "Inter-Medium";
-  color: var(--secondary-gray);
+  font-family: "Montserrat-Medium";
+  color: #fff;
   font-size: 14px;
+  margin-bottom: 8px;
 }
 .wrapper {
   display: flex;
   flex-direction: column;
   width: 100%;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
 }
 
 .input {
-  padding: 12px 10px;
-  font-family: "Inter-Light";
-  color: var(--primary-black);
+  padding: 12px 15px;
+  font-family: "Montserrat-Light";
+  color: #fff;
   font-size: 16px;
-  border: 1px solid var(--lighter-gray);
-  border-radius: 10px;
+  border: 1px solid #333;
+  border-radius: 8px;
+  background: #111;
+  transition: border-color 0.2s;
 }
+
+.input:focus {
+  outline: none;
+  border-color: #ffc300;
+}
+
+.input::placeholder {
+  color: #666;
+}
+
 .redBorder {
-  border-color: var(--accent-red);
+  border-color: #ef4444;
 }
+
 .errors-wrapper {
-  margin-top: 5px;
-  color: var(--accent-red);
+  margin-top: 8px;
+  color: #ef4444;
 }
+
 .error {
   display: flex;
   align-items: center;
   gap: 5px;
 }
+
 .error p {
-  font-family: "Inter-Light";
+  font-family: "Montserrat-Light";
   font-size: 12px;
 }
 </style>

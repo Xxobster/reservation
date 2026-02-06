@@ -26,9 +26,9 @@ const props = defineProps({
   width: 100%;
   gap: 10px;
   padding: 50px;
-  border: 1px solid var(--lighter-gray);
+  border: 1px solid #333;
   border-radius: 10px;
-  background-color: var(--primary-white);
+  background-color: #111;
 }
 
 .main-wrapper .content {
@@ -36,6 +36,11 @@ const props = defineProps({
   justify-content: center;
   align-items: center;
   gap: 15px;
-  color: var(--lighter-gray);
+  color: #666;
+}
+
+.main-wrapper .content h1 {
+  color: #666;
+  font-family: "Montserrat-Medium";
 }
 </style>

@@ -13,19 +13,19 @@ const props = defineProps({
 
 <style scoped>
 .wrapper {
-  color: var(--primary-black);
-  background-color: var(--light-pink);
-  border: 1px solid var(--primary-black);
+  color: #ffc300;
+  background-color: transparent;
+  border: 2px solid #ffc300;
   width: 100%;
   text-align: center;
   font-family: "Montserrat-Bold";
   border-radius: 5px;
-  padding: 10px 20px;
+  padding: 12px 25px;
   transition: 300ms;
   cursor: pointer;
 }
 .wrapper:hover {
-  background-color: var(--primary-black);
-  color: var(--snow-white);
+  background-color: #ffc300;
+  color: #000;
 }
 </style>

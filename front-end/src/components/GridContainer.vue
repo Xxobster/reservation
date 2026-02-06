@@ -20,8 +20,8 @@ const props = defineProps({
 
 <style scoped>
 .main-wrapper {
-  background-color: var(--primary-white);
-  border: 1px solid var(--primary-gray);
+  background-color: #0a0a0a;
+  border: 1px solid #1a1a1a;
   border-radius: 10px;
   padding: 15px;
   transition: all 1.5s;

@@ -37,8 +37,8 @@ onMounted(() => {
     <nav>
       <img
         class="logo"
-        src="@/assets/images/rtrs.png"
-        alt="Logo"
+        src="/img/logo-white.png"
+        alt="S&M Bistro"
         @click="router.push({ name: 'home' })"
       />
       <div v-show="!isMobile" class="nav-links">
@@ -64,7 +64,8 @@ onMounted(() => {
 
 <style scoped>
 header {
-  background-color: var(--primary-red);
+  background-color: #000;
+  border-bottom: 1px solid #1a1a1a;
   position: fixed;
   width: 100%;
   top: 0;
@@ -73,13 +74,13 @@ header {
 }
 nav {
   display: flex;
-  padding: 5px var(--x-spacing-mobile);
+  padding: 10px var(--x-spacing-mobile);
   justify-content: space-between;
   align-items: center;
 }
 .logo {
-  width: 180px;
-  height: 75px;
+  width: 120px;
+  height: auto;
   cursor: pointer;
 }
 .nav-links {
@@ -104,14 +105,14 @@ nav {
   justify-content: center;
   align-items: center;
   position: fixed;
-  color: var(--primary-black);
+  color: var(--primary-white);
   top: 0;
   left: 0;
   flex-direction: column;
   width: 100%;
   height: 100%;
   max-width: 250px;
-  background-color: var(--snow-white);
+  background-color: #111;
 }
 
 .mobile-nav-items {

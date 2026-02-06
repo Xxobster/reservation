@@ -33,8 +33,8 @@ const formattedMessage = computed(() => {
 }
 
 .error-box {
-  background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%);
-  border: 2px solid #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.4);
   border-radius: 12px;
   padding: 20px;
   color: #fff;
@@ -43,14 +43,15 @@ const formattedMessage = computed(() => {
 
 .error-icon {
   font-size: 28px;
-  color: #fca5a5;
+  color: #ef4444;
   margin-bottom: 10px;
 }
 
 .error-message {
   font-size: 1em;
   line-height: 1.6;
-  color: #fef2f2;
+  color: #fca5a5;
+  font-family: "Montserrat-Light";
 }
 
 .error-message :deep(br) {

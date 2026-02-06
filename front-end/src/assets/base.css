@@ -6,11 +6,12 @@
   --darker-gray: #343434;
   --lighter-gray: #9a9a9a;
   --light-pink: #f8e9f2;
-  --primary-black: #04030f;
+  --primary-black: #000000;
   --accent-red: #ef4444;
   --primary-blue: #3b82f6;
   --primary-green: #22c55e;
   --primary-white: #ffffff;
+  --accent-yellow: #ffc300;
   --darkened-color: rgba(0, 0, 0, 0.25);
 
   --top-spacing: 85px;
@@ -18,6 +19,11 @@
   --x-spacing-mobile: 20px;
   --opacity-val: 0;
   --blur-val: 0;
+}
+
+html,
+body {
+  background: #000;
 }
 
 *,
@@ -38,7 +44,7 @@ a {
 
 h1 {
   margin: 0;
-  font-family: "Inter-Bold";
+  font-family: "Montserrat-Bold";
 }
 
 button {
@@ -48,11 +54,11 @@ button {
 
 body {
   margin: 0;
-  color: var(--primary-black);
-  background: var(--light-pink);
+  color: var(--primary-white);
+  background: var(--primary-black);
   transition: color 0.5s, background-color 0.5s;
   line-height: 1.6;
-  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+  font-family: "Montserrat-Normal", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue",
     sans-serif;
   font-size: 15px;

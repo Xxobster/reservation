@@ -25,9 +25,10 @@ const changeRoute = () => router.push({ name: props.routeName });
   gap: 10px;
   cursor: pointer;
   transition: 0.3s;
+  color: #fff;
 }
 
 .nav-item:hover {
-  color: var(--primary-gray);
+  color: #ffc300;
 }
 </style>

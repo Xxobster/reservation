@@ -61,8 +61,12 @@ const onPinCancel = () => {
 </template>
 
 <style scoped>
+.wrapper {
+  min-height: 100vh;
+  background: #000;
+}
 main {
-  background-color: var(--light-pink);
+  background-color: #000;
   margin-top: var(--top-spacing);
 }
 .fade-enter-from,

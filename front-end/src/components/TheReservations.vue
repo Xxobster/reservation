@@ -249,23 +249,30 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+.main-wrapper {
+  background: #000;
+  min-height: 100vh;
+}
+
 .header {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   width: 100%;
-  height: 200px;
-  background: var(--lighter-gray) url("@/assets/images/reservations-header.jpg");
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: center;
+  height: 150px;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+  border-bottom: 1px solid #1a1a1a;
 }
+
 .header h1 {
   margin-left: var(--x-spacing-mobile);
   font-size: 35px;
-  color: var(--snow-white);
-  text-shadow: 1px 1px 2px var(--primary-black);
+  color: #ffc300;
+  font-family: "Montserrat-Bold";
+  letter-spacing: 2px;
+  margin-bottom: 20px;
 }
+
 .content-wrapper {
   justify-content: center;
   flex-wrap: wrap;
@@ -278,16 +285,20 @@ onUnmounted(() => {
   text-align: center;
   margin-bottom: 20px;
   margin-top: 20px;
+  color: #fff;
+  font-family: "Montserrat-Bold";
 }
+
 .reservations-wrapper {
-  background-color: var(--primary-white);
+  background-color: #0a0a0a;
   margin-top: 20px;
   margin-left: var(--x-spacing-mobile);
   margin-right: var(--x-spacing-mobile);
-  border: 1px solid var(--lighter-gray);
+  border: 1px solid #1a1a1a;
   border-radius: 10px;
   padding-bottom: 50px;
 }
+
 .table-wrapper {
   display: flex;
   justify-content: center;
@@ -313,7 +324,9 @@ onUnmounted(() => {
   font-size: 80px;
   cursor: pointer;
   transition: 0.2s ease-in;
+  color: #ffc300;
 }
+
 .all-tables {
   margin-left: var(--x-spacing-mobile);
   margin-right: var(--x-spacing-mobile);
@@ -323,9 +336,14 @@ onUnmounted(() => {
   opacity: var(--opacity-val);
 }
 
-.date-navigation .vector:hover {
-  color: var(--darker-gray);
+.all-tables h1 {
+  color: #ffc300;
 }
+
+.date-navigation .vector:hover {
+  color: #e6b000;
+}
+
 .button {
   width: 200px;
 }
@@ -349,18 +367,25 @@ onUnmounted(() => {
   padding: 12px 20px;
   font-size: 1.2em;
   font-weight: bold;
-  background: var(--primary-black);
-  color: var(--snow-white);
-  border: 2px solid var(--lighter-gray);
+  background: #111;
+  color: #fff;
+  border: 2px solid #333;
   border-radius: 8px;
   cursor: pointer;
   min-width: 120px;
   text-align: center;
+  font-family: "Montserrat-Medium";
+}
+
+.time-select:focus {
+  outline: none;
+  border-color: #ffc300;
 }
 
 .time-vector {
   font-size: 50px !important;
   transition: 0.2s ease-in;
+  color: #ffc300;
 }
 
 .time-vector.disabled {
@@ -369,7 +394,7 @@ onUnmounted(() => {
 }
 
 .time-vector:not(.disabled):hover {
-  color: var(--primary-black);
+  color: #e6b000;
   transform: scale(1.1);
 }
 
@@ -380,9 +405,10 @@ onUnmounted(() => {
 
 .time-info {
   text-align: center;
-  color: var(--darker-gray);
+  color: #999;
   font-size: 1.1em;
   margin-bottom: 20px;
+  font-family: "Montserrat-Light";
 }
 
 @media screen and (min-width: 1024px) {

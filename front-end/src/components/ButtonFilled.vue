@@ -17,17 +17,17 @@ const props = defineProps({
   justify-content: center;
   align-items: center;
   gap: 10px;
-  background-color: var(--primary-black);
+  background-color: #ffc300;
   width: 100%;
-  color: var(--snow-white);
+  color: #000;
   text-align: center;
   font-family: "Montserrat-Bold";
   border-radius: 5px;
-  padding: 10px 20px;
+  padding: 12px 25px;
   transition: 300ms;
   cursor: pointer;
 }
 .wrapper:hover {
-  background-color: var(--darker-gray);
+  background-color: #e6b000;
 }
 </style>

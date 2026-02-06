@@ -22,11 +22,15 @@ const props = defineProps({
   justify-content: center;
   align-items: center;
   text-align: center;
-  gap: 5px;
-  margin-top: 5px;
+  gap: 8px;
+  margin-top: 10px;
   margin-bottom: 15px;
-  color: var(--primary-green);
-  font-family: "Inter-Light";
+  padding: 15px;
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: 10px;
+  color: #22c55e;
+  font-family: "Montserrat-Medium";
 }
 
 .fade-enter-from,

@@ -16,6 +16,23 @@
     url("/fonts/Montserrat/Montserrat-Regular.ttf") format("truetype");
 }
 @font-face {
+  font-family: "Montserrat-Light";
+  src: local("Montserrat"),
+    url("/fonts/Montserrat/Montserrat-Light.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Montserrat-LightItalic";
+  src: local("Montserrat"),
+    url("/fonts/Montserrat/Montserrat-LightItalic.ttf") format("truetype");
+  font-style: italic;
+}
+@font-face {
+  font-family: "Ananias";
+  src: local("Ananias"), url("/fonts/Ananias/Ananias-Regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
   font-family: "Jost-Bold";
   src: local("Jost"), url("/fonts/Jost/Jost-Bold.ttf") format("truetype");
 }

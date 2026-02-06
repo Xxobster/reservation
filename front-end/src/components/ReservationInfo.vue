@@ -48,10 +48,15 @@ const props = defineProps({
   justify-content: center;
   flex-direction: column;
   width: 100%;
-  background-color: var(--primary-white);
-  padding: 10px 15px;
-  border: 1px solid var(--lighter-gray);
-  border-radius: 10px;
+  background-color: #111;
+  padding: 15px 20px;
+  border: 1px solid #333;
+  border-radius: 12px;
+  transition: border-color 0.2s;
+}
+
+.wrapper:hover {
+  border-color: #ffc300;
 }
 
 .wrapper .reservation-details {
@@ -60,13 +65,15 @@ const props = defineProps({
   grid-gap: 10px;
   padding-left: 25px;
   margin-bottom: 15px;
-  font-family: "Inter-Medium";
+  font-family: "Montserrat-Light";
+  color: #ccc;
 }
 
 .capacity-wrapper {
   display: flex;
   justify-content: center;
-  font-family: "Inter-Medium";
+  font-family: "Montserrat-Medium";
+  color: #ffc300;
 }
 
 .info-container {
@@ -77,12 +84,14 @@ const props = defineProps({
 }
 
 .names {
-  font-family: "Inter-Bold";
+  font-family: "Montserrat-Bold";
   margin-bottom: 10px;
+  color: #fff;
 }
 
 .icon {
   font-size: 18px;
+  color: #ffc300;
 }
 
 @media screen and (min-width: 1024px) {

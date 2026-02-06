@@ -78,18 +78,22 @@ const filteredReservations = computed(() => {
 </template>
 
 <style scoped>
+.main-wrapper {
+  background: #000;
+  min-height: 100vh;
+}
+
 .header {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   position: relative;
   width: 100%;
-  height: 200px;
-  background: var(--lighter-gray) url("@/assets/images/search-header.jpg");
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: center;
+  height: 150px;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+  border-bottom: 1px solid #1a1a1a;
 }
+
 .header-wrapper {
   display: flex;
   position: absolute;
@@ -98,12 +102,16 @@ const filteredReservations = computed(() => {
   flex-direction: column;
   margin-left: var(--x-spacing-mobile);
   margin-bottom: 15px;
+  gap: 15px;
 }
+
 .header h1 {
   font-size: 35px;
-  color: var(--snow-white);
-  text-shadow: 1px 1px 2px var(--primary-black);
+  color: #ffc300;
+  font-family: "Montserrat-Bold";
+  letter-spacing: 2px;
 }
+
 .results-wrapper {
   display: flex;
   justify-content: center;
@@ -121,35 +129,42 @@ const filteredReservations = computed(() => {
   max-width: 400px;
   width: 100%;
   border-radius: 10px;
-  background-color: var(--primary-white);
+  background-color: #111;
 }
+
 .icon {
   display: flex;
   align-items: center;
-  padding-left: 6px;
+  padding-left: 12px;
   position: absolute;
   top: 0;
   bottom: 0;
   left: 0;
 }
+
 .icon .icon-vector {
   width: 25px;
   height: 25px;
-  color: var(--primary-black);
+  color: #666;
 }
 
 .search-box {
   display: block;
-  padding: 10px 0;
+  padding: 12px 0;
   width: 100%;
-  font-family: "Inter-Light";
+  font-family: "Montserrat-Light";
   font-size: 16px;
-  color: var(--primary-black);
+  color: #fff;
   border-radius: 10px;
-  padding-left: 40px;
-  background: none;
-  border: 1px solid var(--lighter-gray);
+  padding-left: 45px;
+  background: #111;
+  border: 1px solid #333;
 }
+
+.search-box::placeholder {
+  color: #666;
+}
+
 .test {
   transition: all 1.5s;
   filter: blur(var(--blur-val));
@@ -157,7 +172,8 @@ const filteredReservations = computed(() => {
 }
 
 .search-box:focus {
-  outline: 2px solid black;
+  outline: none;
+  border-color: #ffc300;
 }
 
 @media screen and (min-width: 1024px) {
