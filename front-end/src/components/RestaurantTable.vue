@@ -46,8 +46,11 @@ const hasOccupiedSeats = computed(() => {
    ========================= */
 
 .main-wrapper {
-  width: 240px;
-  height: 78px;
+  width: 100%;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: 140px !important;
+  flex-shrink: 0;
 
   background: linear-gradient(135deg, #1a1a1a 0%, #252525 100%);
   border: 1px solid #333;
@@ -110,6 +113,8 @@ const hasOccupiedSeats = computed(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex: 0 0 auto;
+  min-height: 0;
 }
 
 /* Seats NEVER affect layout size */
@@ -118,6 +123,7 @@ const hasOccupiedSeats = computed(() => {
   grid-template-columns: repeat(3, 1fr);
   gap: 6px;
   justify-items: center;
+  flex-shrink: 0;
 }
 
 /* =========================
@@ -148,11 +154,10 @@ const hasOccupiedSeats = computed(() => {
   }
 }
 
-/* Mobile: full width cards, still compact */
+/* Mobile: full width cards */
 @media (max-width: 480px) {
   .main-wrapper {
     width: 100%;
-    height: 76px;
   }
 }
 </style>

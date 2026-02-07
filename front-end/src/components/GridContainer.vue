@@ -25,25 +25,30 @@ const props = defineProps({
   border-radius: 10px;
   padding: 15px;
   transition: all 1.5s;
+  height: fit-content;
+  width: 100%;
 }
 
 .grid-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 15px;
-  align-items: start;
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap: 15px;
+  grid-auto-rows: max-content;
+  align-content: start;
+  width: 100%;
 }
 
 .grid-item-container {
   min-height: 0;
-  align-self: start; /* ← prevents vertical stretching */
+  align-self: start;
+  height: fit-content;
 }
 
-@media screen and (min-width: 768px) {
-  .grid-container {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
-  }
+/* Force slotted card to not stretch - target direct child (RestaurantTable root) */
+.grid-item-container :deep(> *) {
+  height: auto !important;
+  max-height: none !important;
+  min-height: 0 !important;
 }
 
 @media screen and (min-width: 1024px) {
@@ -51,7 +56,7 @@ const props = defineProps({
     padding: 30px;
   }
   .grid-container {
-    gap: 30px;
+    grid-gap: 30px;
   }
 }
 </style>
