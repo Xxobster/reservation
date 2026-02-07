@@ -63,6 +63,14 @@ const getTimeRange = (resTime, tableType) => {
   return { start: cleanStartTime, end: endTime };
 };
 
+// Display time as "HH:MM - HH:MM" (start - end) in the table
+const formatTimeRange = (item) => {
+  const tableType = (item.tableType || item.table_type_req || '').toLowerCase();
+  const { start, end } = getTimeRange(item.resTime, tableType);
+  if (!start) return "—";
+  return end ? `${start} - ${end}` : start;
+};
+
 // Format table type and seating for display in message
 const formatTableAndSeating = (tableType, seatingType) => {
   const table = (tableType || '').toLowerCase() === 'raclette' ? 'Raclette' : 'Standard';
@@ -139,6 +147,7 @@ const cancelReservation = async (item) => {
                 </svg>
               </a>
             </span>
+            <span v-else-if="key === 'resTime'">{{ formatTimeRange(item) }}</span>
             <span v-else>{{ item[key] ?? "—" }}</span>
           </td>
           <td>
