@@ -66,6 +66,12 @@ label {
   border-color: #ffc300;
 }
 
+/* Calendar icon (date input) – #ffc300 amber/gold to match header */
+.input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(81%) sepia(40%) saturate(2000%) hue-rotate(360deg) !important;
+  cursor: pointer;
+}
+
 .input::placeholder {
   color: #666;
 }

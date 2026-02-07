@@ -1,5 +1,11 @@
 @import "./base.css";
 
+/* Date input calendar icon – #ffc300 amber/gold (match header, no green tint) */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(81%) sepia(40%) saturate(2000%) hue-rotate(360deg);
+  cursor: pointer;
+}
+
 @font-face {
   font-family: "Montserrat-Bold";
   src: local("Montserrat"),
