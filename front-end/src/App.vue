@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from "vue";
+import { ref, watch, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import TheNavbar from "@/components/TheNavbar.vue";
 import TheFooter from "@/components/TheFooter.vue";
@@ -9,6 +9,17 @@ const route = useRoute();
 const router = useRouter();
 const showPinModal = ref(false);
 const intendedRoute = ref(null);
+
+// Single source of truth for admin state so navbar updates immediately on PIN success
+const adminAuthenticated = ref(false);
+
+const syncAdminFromStorage = () => {
+  adminAuthenticated.value = sessionStorage.getItem("adminAuthenticated") === "true";
+};
+
+onMounted(() => {
+  syncAdminFromStorage();
+});
 
 // Watch for PIN requirement in query
 watch(
@@ -26,11 +37,15 @@ watch(
 
 const onPinSuccess = () => {
   showPinModal.value = false;
-  // Navigate to the intended route
-  if (intendedRoute.value) {
-    router.push({ name: intendedRoute.value });
-  }
+  const goTo = intendedRoute.value;
   intendedRoute.value = null;
+  // Full reload so navbar remounts and reads sessionStorage → admin links appear
+  if (goTo) {
+    const href = router.resolve({ name: goTo }).href;
+    setTimeout(() => { window.location.assign(href); }, 100);
+  } else {
+    setTimeout(() => { window.location.reload(); }, 100);
+  }
 };
 
 const onPinCancel = () => {
@@ -41,7 +56,7 @@ const onPinCancel = () => {
 
 <template>
   <div class="wrapper">
-    <TheNavbar />
+    <TheNavbar :admin-authenticated="adminAuthenticated" />
     <main>
       <RouterView v-slot="{ Component }">
         <Transition name="fade" mode="out-in">

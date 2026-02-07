@@ -5,6 +5,10 @@ import ButtonHamburger from "@/components/ButtonHamburger.vue";
 import { useRouter } from "vue-router";
 import { ref, onMounted } from "vue";
 
+const props = defineProps({
+  adminAuthenticated: { type: Boolean, default: undefined },
+});
+
 const router = useRouter();
 
 const isMobile = ref(null);
@@ -45,7 +49,7 @@ onMounted(() => {
         @click="router.push({ name: 'home' })"
       />
       <div v-show="!isMobile" class="nav-links">
-        <NavItems />
+        <NavItems :admin-authenticated="adminAuthenticated" />
       </div>
       <ButtonHamburger
         :mobile-nav="mobileNav"
@@ -56,7 +60,7 @@ onMounted(() => {
         <div class="overlay" v-show="mobileNav" @click.self="toggleMobileNav">
           <Transition name="mobile-nav">
             <div class="mobile-nav" v-show="mobileNav">
-              <NavItems class="mobile-nav-items" />
+              <NavItems class="mobile-nav-items" :admin-authenticated="adminAuthenticated" />
             </div>
           </Transition>
         </div>

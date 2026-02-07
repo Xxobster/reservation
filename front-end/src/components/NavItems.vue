@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import NavItem from "@/components/NavItem.vue";
 
@@ -12,16 +12,25 @@ import LoginIcon from "~icons/mdi/login";
 import DeliveryIcon from "~icons/mdi/truck-delivery";
 import HandshakeIcon from "~icons/mdi/handshake";
 
-const router = useRouter();
-const isAdmin = ref(false);
+const props = defineProps({
+  /** When provided by App.vue, navbar updates immediately on PIN success without refresh */
+  adminAuthenticated: { type: Boolean, default: undefined },
+});
 
+const router = useRouter();
+
+const isAdminFromStorage = ref(false);
 const checkAuth = () => {
-  isAdmin.value = sessionStorage.getItem("adminAuthenticated") === "true";
+  isAdminFromStorage.value = sessionStorage.getItem("adminAuthenticated") === "true";
 };
+
+// Use parent state when provided (updates on PIN success); otherwise fall back to sessionStorage
+const isAdmin = computed(() =>
+  props.adminAuthenticated !== undefined ? props.adminAuthenticated : isAdminFromStorage.value
+);
 
 const logout = () => {
   sessionStorage.removeItem("adminAuthenticated");
-  isAdmin.value = false;
   window.location.href = "/";
 };
 
@@ -31,7 +40,6 @@ const showLogin = () => {
 
 onMounted(() => {
   checkAuth();
-  // Check auth status periodically
   window.addEventListener("storage", checkAuth);
 });
 
