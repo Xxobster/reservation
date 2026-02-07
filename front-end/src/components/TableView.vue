@@ -112,7 +112,8 @@ const cancelReservation = async (item) => {
 
 <template>
   <div class="main-wrapper">
-    <table key="1" v-if="props.collection.length !== 0">
+    <div class="table-inner" v-if="props.collection.length !== 0">
+    <table key="1">
       <thead>
         <tr class="header-row">
           <th v-for="field in props.fields" :key="field">
@@ -178,6 +179,7 @@ const cancelReservation = async (item) => {
         </tr>
       </tbody>
     </table>
+    </div>
     <NotFoundResource
       class="test"
       v-else
@@ -193,7 +195,17 @@ const cancelReservation = async (item) => {
 .main-wrapper {
   width: 100%;
   position: relative;
-  display: grid;
+  display: block;
+  height: fit-content;
+  min-height: 0;
+  align-self: flex-start;
+}
+
+.table-inner {
+  display: block;
+  height: auto;
+  min-height: 0;
+  width: 100%;
 }
 
 table {
@@ -204,6 +216,25 @@ table {
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
   width: 100%;
+  height: auto;
+  min-height: 0;
+  vertical-align: top;
+  margin: 0;
+}
+
+thead,
+tbody {
+  margin: 0;
+  padding: 0;
+  vertical-align: top;
+}
+
+tbody {
+  display: table-row-group;
+}
+
+thead {
+  display: table-header-group;
 }
 
 .header-row {
@@ -239,6 +270,7 @@ table {
   padding-bottom: 12px;
   padding-top: 12px;
   border-bottom: 1px solid #222;
+  vertical-align: top;
 }
 
 .phone-cell {

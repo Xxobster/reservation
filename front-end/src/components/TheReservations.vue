@@ -251,7 +251,11 @@ onUnmounted(() => {
 <style scoped>
 .main-wrapper {
   background: #000;
-  min-height: 100vh;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
 }
 
 .header {
@@ -274,11 +278,14 @@ onUnmounted(() => {
 }
 
 .content-wrapper {
-  justify-content: center;
-  flex-wrap: wrap;
-  align-items: center;
-  width: 100%;
+  display: flex;
   flex-direction: column;
+  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: flex-start;
+  width: 100%;
+  flex: 0 0 auto;
+  min-height: 0;
 }
 
 .content-wrapper h1 {
@@ -297,6 +304,9 @@ onUnmounted(() => {
   border: 1px solid #1a1a1a;
   border-radius: 10px;
   padding-bottom: 50px;
+  flex: 0 0 auto;
+  align-self: stretch;
+  min-height: 0;
 }
 
 .table-wrapper {
@@ -305,9 +315,11 @@ onUnmounted(() => {
   align-self: flex-start;
   margin-left: var(--x-spacing-mobile);
   margin-right: var(--x-spacing-mobile);
-  align-items: center;
+  align-items: flex-start;
   border-radius: 10px;
   margin-top: 50px;
+  min-height: 0;
+  flex: 0 0 auto;
 }
 
 .date-navigation {

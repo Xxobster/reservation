@@ -16,4 +16,9 @@ import TheReservations from "@/components/TheReservations.vue";
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.main-wrapper {
+  min-height: 100vh;
+  background: #000;
+}
+</style>
