@@ -1,9 +1,8 @@
 import axios from "axios";
 
-const defaultBaseURL =
-  typeof import.meta !== "undefined" && import.meta.env?.PROD
-    ? "/api/v1"
-    : "http://212.73.150.149:5000/api/v1";
+// Use relative URL so the same origin is used (Nginx or Vite proxy forwards /api to backend).
+// This fixes the reservation form on the live site where cross-origin requests were failing.
+const defaultBaseURL = "/api/v1";
 
 export default (url = defaultBaseURL) => {
   return axios.create({

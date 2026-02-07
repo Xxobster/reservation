@@ -33,6 +33,11 @@ const router = createRouter({
       // Public - no auth required
     },
     {
+      path: "/partners",
+      name: "partners",
+      component: () => import("../views/PartnersView.vue"),
+    },
+    {
       path: "/search",
       name: "search",
       component: () => import("../views/SearchView.vue"),

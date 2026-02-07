@@ -302,7 +302,7 @@ onUnmounted(() => {
 .table-wrapper {
   display: flex;
   justify-content: center;
-  flex: 1;
+  align-self: flex-start;
   margin-left: var(--x-spacing-mobile);
   margin-right: var(--x-spacing-mobile);
   align-items: center;

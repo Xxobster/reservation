@@ -1,6 +1,5 @@
 <script setup>
 import TextBox from "@/components/TextBox.vue";
-import ButtonFilled from "@/components/ButtonFilled.vue";
 import ErrorMessage from "@/components/ErrorMessage.vue";
 
 import SaveIcon from "~icons/fluent/save-16-regular";
@@ -21,6 +20,7 @@ const reservation = ref({
 
 const validationErrors = ref(null);
 const isSuccessful = ref(false);
+const isSubmitting = ref(false);
 const generalError = ref(null);
 const confirmationData = ref(null);
 
@@ -50,22 +50,23 @@ const registerReservation = async () => {
   validationErrors.value = null;
   generalError.value = null;
   confirmationData.value = null;
-  
+
   // Check if more than 6 people
   if (parseInt(reservation.value.people) > 6) {
     generalError.value = "For reservations of more than 6 people, please contact the owner through WhatsApp on +41 79 391 75 77.";
     return;
   }
-  
+
+  isSubmitting.value = true;
   try {
     const response = await reservationAPI.registerReservation(reservation.value);
     isSuccessful.value = true;
-    
+
     // Use confirmation data from backend response
     const confirmation = response.data.confirmation;
     const duration = confirmation.tableType === 'raclette' ? '2 hours' : '1 hour';
     const endTime = getEndTime(confirmation.resTime, confirmation.tableType);
-    
+
     confirmationData.value = {
       date: confirmation.resDate,
       startTime: confirmation.resTime,
@@ -77,10 +78,21 @@ const registerReservation = async () => {
       people: confirmation.people,
     };
   } catch (err) {
-    if (err.response && err.response.data) {
-      generalError.value = err.response.data.message;
-      validationErrors.value = err.response.data.errors;
+    if (err.response) {
+      const status = err.response.status;
+      if (status === 502 || status === 503) {
+        generalError.value = "Server temporarily unavailable. Please try again in a few moments.";
+      } else if (err.response.data && (err.response.data.message || err.response.data.error)) {
+        generalError.value = err.response.data.message ?? err.response.data.error;
+        validationErrors.value = err.response.data.errors;
+      } else {
+        generalError.value = "Something went wrong. Please try again.";
+      }
+    } else {
+      generalError.value = "Unable to reach the server. Please check your connection and try again.";
     }
+  } finally {
+    isSubmitting.value = false;
   }
 };
 
@@ -250,9 +262,16 @@ const resetForm = () => {
           <button type="button" class="new-reservation-btn" @click="resetForm">Make Another Reservation</button>
         </div>
 
-        <ButtonFilled v-if="!isSuccessful" class="button" text="Submit">
-          <template #icon><SaveIcon /></template>
-        </ButtonFilled>
+        <button
+          v-if="!isSuccessful"
+          type="button"
+          class="submit-btn"
+          :disabled="isSubmitting"
+          @click="registerReservation"
+        >
+          <SaveIcon />
+          <span>{{ isSubmitting ? 'Submitting...' : 'Submit' }}</span>
+        </button>
       </form>
     </div>
   </div>
@@ -491,6 +510,31 @@ const resetForm = () => {
   background: #e6b000;
   transform: scale(1.02);
   box-shadow: 0 6px 20px rgba(255, 195, 0, 0.4);
+}
+
+.submit-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  background: #ffc300;
+  color: #000;
+  border: none;
+  border-radius: 5px;
+  padding: 12px 25px;
+  font-family: "Montserrat-Bold";
+  font-size: 1em;
+  cursor: pointer;
+  transition: 300ms;
+  margin-top: 10px;
+}
+.submit-btn:hover:not(:disabled) {
+  background: #e6b000;
+}
+.submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 @media screen and (max-width: 600px) {

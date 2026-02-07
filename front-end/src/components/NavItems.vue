@@ -10,6 +10,7 @@ import PlusIcon from "~icons/akar-icons/plus";
 import LogoutIcon from "~icons/mdi/logout";
 import LoginIcon from "~icons/mdi/login";
 import DeliveryIcon from "~icons/mdi/truck-delivery";
+import HandshakeIcon from "~icons/mdi/handshake";
 
 const router = useRouter();
 const isAdmin = ref(false);
@@ -59,6 +60,13 @@ onUnmounted(() => {
     <NavItem route-name="new-reservation" text="New Reservation">
       <template #icon>
         <FoodIcon />
+      </template>
+    </NavItem>
+
+    <!-- Our Partners - Public -->
+    <NavItem route-name="partners" text="Our Partners">
+      <template #icon>
+        <HandshakeIcon />
       </template>
     </NavItem>
     

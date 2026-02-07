@@ -56,12 +56,12 @@ const whatsappUrl = `https://wa.me/${whatsappNumber}`;
       <div class="highlight-item">
         <span class="highlight-icon">🧀</span>
         <h4>RACLETTE!</h4>
-        <p>Authentic Swiss raclette experience</p>
+        <p>Authentic French raclette experience</p>
       </div>
       <div class="highlight-item">
         <span class="highlight-icon">🥖</span>
-        <h4>Fresh Baguettes</h4>
-        <p>Homemade daily</p>
+        <h4>French Baguettes</h4>
+        <p>From the French bakery <a href="https://maps.app.goo.gl/sy2JVzvVGA2uVLLV6" target="_blank" rel="noopener noreferrer" class="highlight-link">La Boulange</a> in Pakse</p>
       </div>
       <div class="highlight-item">
         <span class="highlight-icon">🍷</span>
@@ -263,5 +263,12 @@ const whatsappUrl = `https://wa.me/${whatsappNumber}`;
   font-family: "Montserrat-LightItalic";
   font-style: italic;
   color: #888;
+}
+.highlight-link {
+  color: #ffc300;
+  text-decoration: none;
+}
+.highlight-link:hover {
+  text-decoration: underline;
 }
 </style>

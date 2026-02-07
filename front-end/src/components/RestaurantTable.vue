@@ -5,40 +5,35 @@ const props = defineProps({
   table: Object,
 });
 
-const cssProps = computed(() => {
-  return {
-    "--columns": props.table.capacity,
-  };
-});
-
-// Get the number of booked seats (occupied)
 const bookedSeats = computed(() => {
   return parseInt(props.table?.bookedSeats) || 0;
 });
 
-// Check if a specific seat is occupied
 const isSeatOccupied = (seatIndex) => {
   return seatIndex <= bookedSeats.value;
 };
 
-// Check if table has any occupied seats
 const hasOccupiedSeats = computed(() => {
   return bookedSeats.value > 0;
 });
 </script>
+
 <template>
   <div class="main-wrapper">
     <div class="header">
-      <div>{{ props.table?.name }}</div>
-      <div class="table-status" v-show="hasOccupiedSeats">{{ bookedSeats }}/{{ props.table?.capacity }} Occupied</div>
+      <div class="title">{{ props.table?.name }}</div>
+      <div class="table-status" v-if="hasOccupiedSeats">
+        {{ bookedSeats }}/{{ props.table?.capacity }}
+      </div>
     </div>
+
     <div class="content">
-      <div class="seats-wrapper" :style="cssProps">
+      <div class="seats-wrapper">
         <div
-          class="circle"
-          :class="{ occupiedColor: isSeatOccupied(seat) }"
           v-for="seat in props.table?.capacity"
           :key="seat"
+          class="circle"
+          :class="{ occupiedColor: isSeatOccupied(seat) }"
         ></div>
       </div>
     </div>
@@ -46,64 +41,94 @@ const hasOccupiedSeats = computed(() => {
 </template>
 
 <style scoped>
+/* =========================
+   CARD GEOMETRY (LOCKED)
+   ========================= */
+
 .main-wrapper {
+  width: 240px;
+  height: 78px;
+
   background: linear-gradient(135deg, #1a1a1a 0%, #252525 100%);
   border: 1px solid #333;
-  padding: 15px;
-  width: 100%;
-  height: 100%;
-  border-radius: 12px;
-  transition: all 0.3s;
+  border-radius: 10px;
+
+  padding: 6px 10px;
+  box-sizing: border-box;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 4px;
+
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .main-wrapper:hover {
   border-color: #ffc300;
-  box-shadow: 0 4px 15px rgba(255, 195, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(255, 195, 0, 0.15);
 }
 
-.main-wrapper .header {
+/* =========================
+   HEADER
+   ========================= */
+
+.header {
   display: flex;
-  justify-content: space-around;
-  position: relative;
+  justify-content: space-between;
   align-items: center;
-  grid-gap: 10px;
-  font-family: "Montserrat-Bold";
+  gap: 6px;
+
+  font-size: 13px;
+  line-height: 1.2;
   color: #fff;
 }
 
-.header .table-status {
+.title {
+  font-family: "Montserrat-Bold";
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.table-status {
   background-color: rgba(255, 195, 0, 0.15);
   color: #ffc300;
   font-family: "Montserrat-Light";
   font-size: 10px;
   border: 1px solid rgba(255, 195, 0, 0.3);
-  padding: 3px 8px;
-  border-radius: 10px;
+  padding: 2px 6px;
+  border-radius: 8px;
+  white-space: nowrap;
 }
+
+/* =========================
+   CONTENT
+   ========================= */
 
 .content {
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
 }
 
+/* Seats NEVER affect layout size */
 .seats-wrapper {
-  margin-top: 15px;
-  margin-bottom: 15px;
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  align-items: center;
-  width: 80%;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  justify-items: center;
 }
+
+/* =========================
+   SEATS
+   ========================= */
 
 .circle {
-  width: 15px;
-  height: 15px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
   background-color: #22c55e;
-  border-radius: 100%;
-  transition: background-color 0.2s;
 }
 
 .occupiedColor {
@@ -111,15 +136,23 @@ const hasOccupiedSeats = computed(() => {
   border: 1px solid #333;
 }
 
-@media screen and (min-width: 1024px) {
-  .seats-wrapper {
-    margin-top: 20px;
-    width: 40%;
-    margin-bottom: 20px;
-  }
+/* =========================
+   RESPONSIVE (VISUAL ONLY)
+   ========================= */
+
+/* Desktop: slightly bigger dots */
+@media (min-width: 1024px) {
   .circle {
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* Mobile: full width cards, still compact */
+@media (max-width: 480px) {
+  .main-wrapper {
+    width: 100%;
+    height: 76px;
   }
 }
 </style>
