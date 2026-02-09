@@ -1,0 +1,15 @@
+---
+description: Deploy frontend changes to the live webserver
+globs: front-end/**
+---
+
+# Deploy frontend to webserver
+
+When you change any front-end code (Vue, assets, public files), **always** make the changes visible on the live site by:
+
+1. **Building** the frontend: `cd front-end && npm run build`
+2. **Reloading nginx** (optional but recommended): `sudo nginx -t && sudo systemctl reload nginx`
+
+Or run the project script once: `./deploy-frontend.sh`
+
+Nginx serves from `front-end/dist`, so building updates the live site at smbistro.duckdns.org.

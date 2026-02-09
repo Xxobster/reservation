@@ -11,6 +11,7 @@ import LogoutIcon from "~icons/mdi/logout";
 import LoginIcon from "~icons/mdi/login";
 import DeliveryIcon from "~icons/mdi/truck-delivery";
 import HandshakeIcon from "~icons/mdi/handshake";
+import MenuBookIcon from "~icons/mdi/book-open-variant";
 
 const props = defineProps({
   /** When provided by App.vue, navbar updates immediately on PIN success without refresh */
@@ -57,6 +58,13 @@ onUnmounted(() => {
       </template>
     </NavItem>
     
+    <!-- Our Menu - Public -->
+    <NavItem route-name="menu" text="Our Menu">
+      <template #icon>
+        <MenuBookIcon />
+      </template>
+    </NavItem>
+
     <!-- Delivery/Pick-up - Public -->
     <NavItem route-name="delivery" text="Delivery/Pick-up">
       <template #icon>
