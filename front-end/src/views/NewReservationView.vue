@@ -4,7 +4,8 @@ import ErrorMessage from "@/components/ErrorMessage.vue";
 
 import SaveIcon from "~icons/fluent/save-16-regular";
 import reservationAPI from "@/services/reservationAPI";
-import { ref, computed } from "vue";
+import { getSettings } from "@/services/settingsAPI";
+import { ref, computed, onMounted } from "vue";
 
 const reservation = ref({
   firstName: "",
@@ -23,6 +24,25 @@ const isSuccessful = ref(false);
 const isSubmitting = ref(false);
 const generalError = ref(null);
 const confirmationData = ref(null);
+const reservationsWhatsappDisplay = ref("+41 79 391 75 77");
+const reservationsWhatsappUrl = ref("https://wa.me/41793917577");
+const reservationsEnabled = ref(true);
+const settingsLoading = ref(true);
+
+onMounted(async () => {
+  try {
+    const res = await getSettings();
+    const d = res.data || {};
+    const num = (d.whatsappReservations || "").replace(/\D/g, "") || "41793917577";
+    reservationsWhatsappUrl.value = `https://wa.me/${num}`;
+    reservationsWhatsappDisplay.value = num.startsWith("41") ? `+41 ${num.slice(2, 4)} ${num.slice(4, 7)} ${num.slice(7, 9)} ${num.slice(9, 11)}` : `+${num}`;
+    reservationsEnabled.value = d.reservationsEnabled !== false;
+  } catch (_) {
+    reservationsEnabled.value = true;
+  } finally {
+    settingsLoading.value = false;
+  }
+});
 
 // Generate time slots every 30 minutes from 11:00 to 21:00 (last booking at 9:00 PM)
 const timeSlots = computed(() => {
@@ -37,12 +57,23 @@ const timeSlots = computed(() => {
   return slots;
 });
 
-// Calculate end time based on table type (Raclette: 2h, Standard: 1h)
-const getEndTime = (startTime, tableType) => {
+// Calculate end time from start time and duration (minutes)
+const getEndTime = (startTime, durationMin) => {
   const [hours, minutes] = startTime.split(':').map(Number);
-  const durationMin = tableType === 'raclette' ? 120 : 60;
-  const endDate = new Date(2000, 0, 1, hours, minutes + durationMin);
+  const d = durationMin ?? 60;
+  const endDate = new Date(2000, 0, 1, hours, minutes + d);
   return `${endDate.getHours().toString().padStart(2, '0')}:${endDate.getMinutes().toString().padStart(2, '0')}`;
+};
+
+const formatDuration = (durationMin) => {
+  const n = Number(durationMin);
+  if (!Number.isFinite(n) || n <= 0) return "1 hour";
+  if (n === 60) return "1 hour";
+  if (n === 120) return "2 hours";
+  const h = Math.floor(n / 60);
+  const m = n % 60;
+  if (m === 0) return h === 1 ? "1 hour" : `${h} hours`;
+  return `${h}h ${m}min`;
 };
 
 const registerReservation = async () => {
@@ -53,7 +84,7 @@ const registerReservation = async () => {
 
   // Check if more than 6 people
   if (parseInt(reservation.value.people) > 6) {
-    generalError.value = "For reservations of more than 6 people, please contact the owner through WhatsApp on +41 79 391 75 77.";
+    generalError.value = `For reservations of more than 6 people, please contact the owner through WhatsApp on ${reservationsWhatsappDisplay.value}.`;
     return;
   }
 
@@ -62,10 +93,24 @@ const registerReservation = async () => {
     const response = await reservationAPI.registerReservation(reservation.value);
     isSuccessful.value = true;
 
-    // Use confirmation data from backend response
     const confirmation = response.data.confirmation;
-    const duration = confirmation.tableType === 'raclette' ? '2 hours' : '1 hour';
-    const endTime = getEndTime(confirmation.resTime, confirmation.tableType);
+    // Use duration from API (backend reads from settings); fallback to settings fetch if missing
+    const apiDuration = confirmation.durationMin != null ? Number(confirmation.durationMin) : NaN;
+    let durationMin = Number.isFinite(apiDuration) && apiDuration > 0 ? apiDuration : null;
+    if (durationMin == null) {
+      try {
+        const res = await getSettings();
+        const d = res.data || {};
+        const standardMin = Number(d.reservationDurationStandardMin) || 60;
+        const racletteMin = Number(d.reservationDurationRacletteMin) || 120;
+        const tableType = String(confirmation.tableType || '').toLowerCase();
+        durationMin = tableType === 'raclette' ? racletteMin : standardMin;
+      } catch (_) {
+        durationMin = confirmation.tableType === 'raclette' ? 120 : 60;
+      }
+    }
+    const endTime = getEndTime(confirmation.resTime, durationMin);
+    const duration = formatDuration(durationMin);
 
     confirmationData.value = {
       date: confirmation.resDate,
@@ -119,10 +164,26 @@ const resetForm = () => {
       <h1 class="title-ananias">New Reservation</h1>
     </div>
 
-    <div class="form-wrapper">
-      <p class="large-group-notice">
-        For reservations of more than 6 people, please contact the owner through WhatsApp on +41 79 391 75 77.
-      </p>
+    <div v-if="settingsLoading" class="form-wrapper">
+      <p class="loading-text">Loading…</p>
+    </div>
+
+    <div v-else-if="!reservationsEnabled" class="form-wrapper">
+      <p class="reservations-closed-notice">Reservations are closed at the moment.</p>
+    </div>
+
+    <div v-else class="form-wrapper">
+      <div class="large-group-notice">
+        <p class="large-group-text">
+          For reservations of more than 6 people, please contact the owner through
+          <a :href="reservationsWhatsappUrl" target="_blank" rel="noopener noreferrer" class="whatsapp-inline">WhatsApp on {{ reservationsWhatsappDisplay }}</a>.
+        </p>
+        <a :href="reservationsWhatsappUrl" target="_blank" rel="noopener noreferrer" class="whatsapp-btn-notice" title="Contact on WhatsApp" aria-label="Open WhatsApp">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+          </svg>
+        </a>
+      </div>
       <form @submit.prevent="registerReservation">
 
         <!-- Names -->
@@ -323,16 +384,65 @@ const resetForm = () => {
   flex: 1;
 }
 
-.large-group-notice {
-  color: #ffc300;
+.loading-text {
+  color: #888;
+  text-align: center;
+  padding: 24px;
+  margin: 0;
+}
+.reservations-closed-notice {
+  color: #fca5a5;
   font-size: 1em;
   margin-bottom: 20px;
   text-align: center;
   font-weight: 500;
   padding: 15px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  border-radius: 8px;
+}
+.large-group-notice {
+  margin-bottom: 20px;
+  padding: 15px;
   background: rgba(255, 195, 0, 0.1);
   border: 1px solid rgba(255, 195, 0, 0.3);
   border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.large-group-notice .large-group-text {
+  color: #ffc300;
+  font-size: 1em;
+  text-align: center;
+  font-weight: 500;
+  margin: 0;
+}
+.large-group-notice .whatsapp-inline {
+  color: #ffc300;
+  text-decoration: underline;
+}
+.large-group-notice .whatsapp-btn-notice {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: #25D366;
+  color: #fff;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background 0.2s, transform 0.2s;
+}
+.large-group-notice .whatsapp-btn-notice:hover {
+  background: #128C7E;
+  transform: scale(1.08);
+}
+.large-group-notice .whatsapp-btn-notice svg {
+  width: 26px;
+  height: 26px;
 }
 
 .select-group {

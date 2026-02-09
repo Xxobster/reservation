@@ -43,8 +43,8 @@ const getStatusClass = (status) => {
   }
 };
 
-// Extract start time and calculate end time based on table type
-const getTimeRange = (resTime, tableType) => {
+// Extract start time and calculate end time (durationMin from reservation/API when available)
+const getTimeRange = (resTime, tableType, durationMinFromReservation) => {
   if (!resTime) return { start: '', end: '' };
   
   // If resTime already contains a range (e.g., "20:00 - 22:00"), extract just the start time
@@ -56,7 +56,8 @@ const getTimeRange = (resTime, tableType) => {
   const [hours, minutes] = cleanStartTime.split(':').map(Number);
   if (isNaN(hours) || isNaN(minutes)) return { start: cleanStartTime, end: '' };
   
-  const durationMin = tableType === 'raclette' ? 120 : 60;
+  // Use reservation's durationMin from API when available (set by admin settings)
+  const durationMin = durationMinFromReservation ?? (tableType === 'raclette' ? 120 : 60);
   const endDate = new Date(2000, 0, 1, hours, minutes + durationMin);
   const endTime = `${endDate.getHours().toString().padStart(2, '0')}:${endDate.getMinutes().toString().padStart(2, '0')}`;
   
@@ -66,7 +67,7 @@ const getTimeRange = (resTime, tableType) => {
 // Display time as "HH:MM - HH:MM" (start - end) in the table
 const formatTimeRange = (item) => {
   const tableType = (item.tableType || item.table_type_req || '').toLowerCase();
-  const { start, end } = getTimeRange(item.resTime, tableType);
+  const { start, end } = getTimeRange(item.resTime, tableType, item.durationMin);
   if (!start) return "—";
   return end ? `${start} - ${end}` : start;
 };
@@ -88,7 +89,7 @@ const getWhatsAppUrl = (item) => {
   const resDate = item.resDate || '';
   const tableTypeRaw = (item.tableType || item.table_type_req || '').toLowerCase();
   const seatingTypeRaw = item.seatingType || item.seating_type_req || '';
-  const timeRange = getTimeRange(item.resTime, tableTypeRaw);
+  const timeRange = getTimeRange(item.resTime, tableTypeRaw, item.durationMin);
   const tableAndSeating = formatTableAndSeating(tableTypeRaw, seatingTypeRaw);
   
   const message = `Dear ${firstName},

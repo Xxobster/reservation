@@ -1,12 +1,23 @@
 <script setup>
 import NavItem from "@/components/NavItem.vue";
 import { useRouter, useRoute } from "vue-router";
-import { computed } from "vue";
+import { computed, ref, onMounted } from "vue";
+import { getSettings } from "@/services/settingsAPI";
 
 const router = useRouter();
 const route = useRoute();
-const whatsappUrl = "https://wa.me/41793917577";
+const whatsappUrl = ref("https://wa.me/41793917577");
+const displayPhone = ref("+41 79 391 75 77");
 const isDeliveryPage = computed(() => route.name === "delivery");
+
+onMounted(async () => {
+  try {
+    const res = await getSettings();
+    const num = (res.data?.whatsappGeneral || "").replace(/\D/g, "") || "41793917577";
+    whatsappUrl.value = `https://wa.me/${num}`;
+    displayPhone.value = num.startsWith("41") ? `+41 ${num.slice(2, 4)} ${num.slice(4, 7)} ${num.slice(7, 9)} ${num.slice(9, 11)}` : `+${num}`;
+  } catch (_) {}
+});
 </script>
 
 <template>
@@ -26,7 +37,7 @@ const isDeliveryPage = computed(() => route.name === "delivery");
         <div class="whatsapp-row">
           <img src="/img/qr-whatsapp.png" alt="WhatsApp QR" class="qr-whatsapp" />
           <a :href="whatsappUrl" target="_blank" class="whatsapp-link">
-            <span>📱 WhatsApp: +41 79 391 75 77</span>
+            <span>📱 WhatsApp: {{ displayPhone }}</span>
           </a>
         </div>
         <p v-if="!isDeliveryPage">Don Det, Sunset Side</p>

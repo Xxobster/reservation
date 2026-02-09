@@ -1,84 +1,136 @@
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import ButtonFilled from "@/components/ButtonFilled.vue";
+import { getSettings } from "@/services/settingsAPI";
 
 // Delivery / Pick-up menu
 const menuCategories = ref([
   {
     name: "Make your own",
     items: [
-      { id: 1, name: "Half French baguette", price: 30000, description: "" },
-      { id: 2, name: "Butter (15g)", price: 15000, description: "" },
-      { id: 3, name: "Mango Jelly (30g)", price: 15000, description: "" },
-      { id: 4, name: "Dulce de Leche (30g)", price: 10000, description: "" },
-      { id: 5, name: "Plain Yogurt", price: 40000, description: "" },
-      { id: 6, name: "Choco Cereals", price: 55000, description: "" },
-      { id: 7, name: "Milk (200mL)", price: 25000, description: "" },
+      { id: 1, name: "Half French baguette", nameTh: "ขนมปังบาแกตต์ฝรั่งเศสครึ่งก้อน", price: 30000, description: "" },
+      { id: 2, name: "Butter (15g)", nameTh: "เนย (15 กรัม)", price: 15000, description: "" },
+      { id: 3, name: "Mango Jelly (30g)", nameTh: "วุ้นมะม่วง (30 กรัม)", price: 15000, description: "" },
+      { id: 4, name: "Dulce de Leche (30g)", nameTh: "ดุลเซเดเลเช (30 กรัม)", price: 10000, description: "" },
+      { id: 5, name: "Plain Yogurt", nameTh: "โยเกิร์ตรสธรรมชาติ", price: 40000, description: "" },
+      { id: 6, name: "Choco Cereals", nameTh: "ซีเรียลช็อคโกแลต", price: 55000, description: "" },
+      { id: 7, name: "Milk (200mL)", nameTh: "นม (200 มล.)", price: 25000, description: "" },
     ]
   },
   {
     name: "Sunset Aperitif Collection",
     items: [
-      { id: 12, name: "Salted Peanuts", price: 25000, description: "House peanuts, lightly salted & oven-dried to a crisp" },
-      { id: 13, name: "Olives Bowl", price: 65000, description: "Green pitted olives, lightly marinated" },
-      { id: 14, name: "Mozzarella Bowl", price: 45000, description: "Cubes in olive oil, lime & mint" },
-      { id: 15, name: "Saucisson Bowl — France", price: 60000, description: "Air-dried pork saucisson, hand-sliced" },
+      { id: 12, name: "Salted Peanuts", nameTh: "ถั่วลิสงคั่วเกลือ", price: 25000, description: "House peanuts, lightly salted & oven-dried to a crisp" },
+      { id: 13, name: "Olives Bowl", nameTh: "ชามโอลีฟ", price: 65000, description: "Green pitted olives, lightly marinated" },
+      { id: 14, name: "Mozzarella Bowl", nameTh: "ชามมอสซาเรลลา", price: 45000, description: "Cubes in olive oil, lime & mint" },
+      { id: 15, name: "Saucisson Bowl — France", nameTh: "ชามซอสซิสซอง — ฝรั่งเศส", price: 60000, description: "Air-dried pork saucisson, hand-sliced" },
     ]
   },
   {
     name: "Sandwiches",
     items: [
-      { id: 8, name: "Traditional Pâté Sandwich", price: 75000, description: "Pork & liver pâté, house pickles, served in a half French baguette" },
-      { id: 9, name: "Chicken Rillettes Sandwich", price: 90000, description: "Slow-cooked rillettes, pickles, served in a half French baguette" },
-      { id: 10, name: "Eggplant Caviar with Sweet Paprika Sandwich", price: 90000, description: "Roasted eggplant, paprika & seeds, served in a half French baguette" },
-      { id: 11, name: "Green Olive Tapenade Sandwich", price: 115000, description: "A house-crafted green olive tapenade, blended with olive oil, fresh and roasted garlic, lime, and a delicate hint of mustard, served in a half French baguette" },
-      { id: 34, name: "Ham, butter and cornichons Sandwich", price: 105000, description: "Ham layered with creamy butter and crisp cornichons, served in a half French baguette" },
-      { id: 35, name: "Butter and Comté Sandwich", price: 150000, description: "Silky butter and aged Comté cheese, simply nestled in a half French baguette" },
+      { id: 8, name: "Traditional Pâté Sandwich", nameTh: "แซนด์วิชพาสต้าแบบดั้งเดิม", price: 75000, description: "Pork & liver pâté, house pickles, served in a half French baguette" },
+      { id: 9, name: "Chicken Rillettes Sandwich", nameTh: "แซนด์วิชริยองไก่", price: 90000, description: "Slow-cooked rillettes, pickles, served in a half French baguette" },
+      { id: 10, name: "Eggplant Caviar with Sweet Paprika Sandwich", nameTh: "แซนด์วิชคาเวียร์มะเขือกับพริกหวาน", price: 90000, description: "Roasted eggplant, paprika & seeds, served in a half French baguette" },
+      { id: 11, name: "Green Olive Tapenade Sandwich", nameTh: "แซนด์วิชทาเปนาด์โอลีฟเขียว", price: 115000, description: "A house-crafted green olive tapenade, blended with olive oil, fresh and roasted garlic, lime, and a delicate hint of mustard, served in a half French baguette" },
+      { id: 34, name: "Ham, butter and cornichons Sandwich", nameTh: "แซนด์วิชแฮม เนย และคอร์นิชอง", price: 105000, description: "Ham layered with creamy butter and crisp cornichons, served in a half French baguette" },
+      { id: 35, name: "Butter and Comté Sandwich", nameTh: "แซนด์วิชเนยและกงเต", price: 150000, description: "Silky butter and aged Comté cheese, simply nestled in a half French baguette" },
     ]
   },
   {
     name: "Platters",
     items: [
-      { id: 16, name: "Charcuterie Platter (120g)", price: 190000, description: "House delicatessen, French baguette, pickles & butter" },
-      { id: 17, name: "Cheese Platter (100g)", price: 265000, description: "Fine French cheeses, French baguette, pickles & butter" },
-      { id: 18, name: "Mixed Platter (75g cheese / 100g meat)", price: 320000, description: "Cheeses & delicatessen, French baguette, pickles & butter" },
+      { id: 16, name: "Charcuterie Platter (120g)", nameTh: "จานเนื้อและไส้กรอก (120 กรัม)", price: 190000, description: "House delicatessen, French baguette, pickles & butter" },
+      { id: 17, name: "Cheese Platter (100g)", nameTh: "จานชีส (100 กรัม)", price: 265000, description: "Fine French cheeses, French baguette, pickles & butter" },
+      { id: 18, name: "Mixed Platter (75g cheese / 100g meat)", nameTh: "จานรวม (ชีส 75 กรัม / เนื้อ 100 กรัม)", price: 320000, description: "Cheeses & delicatessen, French baguette, pickles & butter" },
     ]
   },
   {
     name: "Main Courses",
     items: [
-      { id: 19, name: "Slow-Braised Chicken in Dark Beer", price: 150000, description: "Chicken slowly braised in dark beer with Dijon mustard and sautéed onions, served with potatoes" },
-      { id: 20, name: "Slow-Braised Pork in Caramel Sauce", price: 150000, description: "Pieces of Pork simmered in a sweet and savory caramel sauce with toasted peanuts, served with potatoes" },
+      { id: 19, name: "Slow-Braised Chicken in Dark Beer", nameTh: "ไก่ตุ๋นเบียร์ดำ", price: 150000, description: "Chicken slowly braised in dark beer with Dijon mustard and sautéed onions, served with potatoes" },
+      { id: 20, name: "Slow-Braised Pork in Caramel Sauce", nameTh: "หมูตุ๋นซอสคาราเมล", price: 150000, description: "Pieces of Pork simmered in a sweet and savory caramel sauce with toasted peanuts, served with potatoes" },
     ]
   },
   {
     name: "French Wines",
     items: [
-      { id: 33, name: "Camille de Labrie – Saint-Émilion (Red, 750 mL)", price: 710000, description: "A refined Saint-Émilion with silky tannins, ripe red fruit, subtle spice, and an elegant, lingering finish" },
+      { id: 33, name: "Camille de Labrie – Saint-Émilion (Red, 750 mL)", nameTh: "ไวน์ Camille de Labrie – Saint-Émilion (แดง 750 มล.)", price: 710000, description: "A refined Saint-Émilion with silky tannins, ripe red fruit, subtle spice, and an elegant, lingering finish" },
     ]
   },
   {
     name: "Pizza Baguette",
     items: [
-      { id: 21, name: "Pizza Baguette", price: 120000, description: "Crispy French baguette, tomato sauce, mozzarella & oregano" },
-      { id: 22, name: "Blue Cheese", price: 50000, description: "", isPizzaTopping: true },
-      { id: 23, name: "Raclette Cheese", price: 95000, description: "", isPizzaTopping: true },
-      { id: 24, name: "Olive Oil", price: 30000, description: "", isPizzaTopping: true },
-      { id: 25, name: "Olive", price: 35000, description: "", isPizzaTopping: true },
-      { id: 26, name: "Oignons", price: 10000, description: "", isPizzaTopping: true },
-      { id: 27, name: "Potato", price: 10000, description: "", isPizzaTopping: true },
-      { id: 28, name: "Ham", price: 45000, description: "", isPizzaTopping: true },
-      { id: 29, name: "Bacon", price: 45000, description: "", isPizzaTopping: true },
-      { id: 30, name: "Dry Sausage", price: 60000, description: "", isPizzaTopping: true },
-      { id: 31, name: "Cured Pork", price: 60000, description: "", isPizzaTopping: true },
-      { id: 32, name: "Reblochon", price: 95000, description: "", isPizzaTopping: true },
+      { id: 21, name: "Pizza Baguette", nameTh: "พิซซ่าบาแกตต์", price: 120000, description: "Crispy French baguette, tomato sauce, mozzarella & oregano" },
+      { id: 22, name: "Blue Cheese", nameTh: "เบลูชีส", price: 50000, description: "", isPizzaTopping: true },
+      { id: 23, name: "Raclette Cheese", nameTh: "ราคเล็ตชีส", price: 95000, description: "", isPizzaTopping: true },
+      { id: 24, name: "Olive Oil", nameTh: "น้ำมันโอลีฟ", price: 30000, description: "", isPizzaTopping: true },
+      { id: 25, name: "Olive", nameTh: "โอลีฟ", price: 35000, description: "", isPizzaTopping: true },
+      { id: 26, name: "Oignons", nameTh: "หอมใหญ่", price: 10000, description: "", isPizzaTopping: true },
+      { id: 27, name: "Potato", nameTh: "มันฝรั่ง", price: 10000, description: "", isPizzaTopping: true },
+      { id: 28, name: "Ham", nameTh: "แฮม", price: 45000, description: "", isPizzaTopping: true },
+      { id: 29, name: "Bacon", nameTh: "เบคอน", price: 45000, description: "", isPizzaTopping: true },
+      { id: 30, name: "Dry Sausage", nameTh: "ไส้กรอกแห้ง", price: 60000, description: "", isPizzaTopping: true },
+      { id: 31, name: "Cured Pork", nameTh: "หมูแฮม", price: 60000, description: "", isPizzaTopping: true },
+      { id: 32, name: "Reblochon", nameTh: "เรโบลชง", price: 95000, description: "", isPizzaTopping: true },
     ]
   }
 ]);
 
+const settings = ref({
+  whatsappDelivery: "41793917577",
+  deliveryEnabled: true,
+  pickupEnabled: true,
+  deliveryStartTime: "11:00",
+  deliveryEndTime: "21:00",
+  pickupStartTime: "11:00",
+  pickupEndTime: "21:00",
+});
+
+onMounted(async () => {
+  try {
+    const res = await getSettings();
+    const d = res.data || {};
+    settings.value = {
+      whatsappDelivery: (d.whatsappDelivery || "").replace(/\D/g, "") || "41793917577",
+      deliveryEnabled: d.deliveryEnabled !== false,
+      pickupEnabled: d.pickupEnabled !== false,
+      deliveryStartTime: d.deliveryStartTime || "11:00",
+      deliveryEndTime: d.deliveryEndTime || "21:00",
+      pickupStartTime: d.pickupStartTime || "11:00",
+      pickupEndTime: d.pickupEndTime || "21:00",
+    };
+  } catch (_) {}
+});
+
 const orderType = ref("delivery");
 const customerInfo = ref({ name: "", phone: "", guesthouse: "", roomNumber: "", notes: "" });
 const basket = ref([]);
+
+function parseTimeToMinutes(hhmm) {
+  const [h, m] = (hhmm || "00:00").split(":").map(Number);
+  return (h || 0) * 60 + (m || 0);
+}
+function isWithinHours(startHhmm, endHhmm) {
+  const now = new Date();
+  const current = now.getHours() * 60 + now.getMinutes();
+  const start = parseTimeToMinutes(startHhmm);
+  const end = parseTimeToMinutes(endHhmm);
+  if (start <= end) return current >= start && current <= end;
+  return current >= start || current <= end;
+}
+
+const withinDeliveryHours = computed(() => isWithinHours(settings.value.deliveryStartTime, settings.value.deliveryEndTime));
+const withinPickupHours = computed(() => isWithinHours(settings.value.pickupStartTime, settings.value.pickupEndTime));
+
+const deliveryUnavailable = computed(() => orderType.value === "delivery" && !settings.value.deliveryEnabled);
+const pickupUnavailable = computed(() => orderType.value === "pickup" && !settings.value.pickupEnabled);
+const deliveryOutsideHours = computed(() => orderType.value === "delivery" && settings.value.deliveryEnabled && !withinDeliveryHours.value);
+const pickupOutsideHours = computed(() => orderType.value === "pickup" && settings.value.pickupEnabled && !withinPickupHours.value);
+
+const basketDisabled = computed(() => deliveryUnavailable.value || pickupUnavailable.value || deliveryOutsideHours.value || pickupOutsideHours.value);
+const showDeliveryHours = computed(() => orderType.value === "delivery" && settings.value.deliveryEnabled);
+const showPickupHours = computed(() => orderType.value === "pickup" && settings.value.pickupEnabled);
 
 const formatPrice = (price) => price.toLocaleString() + " LAK";
 
@@ -86,6 +138,7 @@ const showAddedToast = ref(false);
 let addedToastTimer = null;
 
 const addToBasket = (item) => {
+  if (basketDisabled.value) return;
   if (item.isPizzaTopping && !hasPizzaBaguetteInBasket.value) return;
   const existingItem = basket.value.find(i => i.id === item.id);
   if (existingItem) existingItem.quantity++;
@@ -126,6 +179,11 @@ const hasPizzaBaguetteInBasket = computed(() => basket.value.some((i) => i.id ==
 
 const canAddTopping = (item) => !item.isPizzaTopping || hasPizzaBaguetteInBasket.value;
 
+const getBasketQty = (itemId) => {
+  const entry = basket.value.find((i) => i.id === itemId);
+  return entry ? entry.quantity : 0;
+};
+
 const isOrderSubmitted = ref(false);
 const orderError = ref(null);
 const customerLocation = ref(null);
@@ -160,9 +218,25 @@ const submitOrder = () => {
   }
 };
 
+// English labels for order section
+const ORDER_ITEMS_LABEL_EN = "Order Items:";
+const DELIVERY_FEE_LABEL_EN = "Delivery fee:";
+const TOTAL_LABEL_EN = "TOTAL:";
+// Thai labels (same order details, below the English)
+const ORDER_ITEMS_LABEL_TH = "รายการที่สั่ง:";
+const DELIVERY_FEE_LABEL_TH = "ค่าส่ง:";
+const TOTAL_LABEL_TH = "รวมทั้งสิ้น:";
+
+const ADD_PREFIX_EN = "add ";
+const ADD_PREFIX_TH = "เพิ่ม "; // "add" in Thai
+
 const getWhatsAppOrderUrl = () => {
-  const itemsList = basket.value.map(item => "- " + item.name + " x" + item.quantity + " = " + formatPrice(item.price * item.quantity)).join("\n");
-  const deliveryLine = orderType.value === "delivery" ? "\nDelivery fee: " + formatPrice(DELIVERY_FEE_LAK) : "";
+  const nameEn = (item) => (item.isPizzaTopping ? ADD_PREFIX_EN : "") + item.name;
+  const nameTh = (item) => (item.isPizzaTopping ? ADD_PREFIX_TH : "") + (item.nameTh != null ? item.nameTh : item.name);
+  const itemsListEn = basket.value.map(item => "- " + nameEn(item) + " x" + item.quantity + " = " + formatPrice(item.price * item.quantity)).join("\n");
+  const itemsListTh = basket.value.map(item => "- " + nameTh(item) + " x" + item.quantity + " = " + formatPrice(item.price * item.quantity)).join("\n");
+  const deliveryLineEn = orderType.value === "delivery" ? "\n" + DELIVERY_FEE_LABEL_EN + " " + formatPrice(DELIVERY_FEE_LAK) : "";
+  const deliveryLineTh = orderType.value === "delivery" ? "\n" + DELIVERY_FEE_LABEL_TH + " " + formatPrice(DELIVERY_FEE_LAK) : "";
   let deliveryDetails;
   if (orderType.value === "delivery") {
     deliveryDetails = "Guesthouse: " + customerInfo.value.guesthouse + "\nRoom: " + customerInfo.value.roomNumber;
@@ -173,8 +247,11 @@ const getWhatsAppOrderUrl = () => {
   } else {
     deliveryDetails = "Pick-up at restaurant";
   }
-  const message = "New " + (orderType.value === "delivery" ? "DELIVERY" : "PICK-UP") + " Order\n\nCustomer: " + customerInfo.value.name + "\nPhone: " + customerInfo.value.phone + "\n" + deliveryDetails + (customerInfo.value.notes ? "\nNotes: " + customerInfo.value.notes : "") + "\n\nOrder Items:\n" + itemsList + deliveryLine + "\n\nTOTAL: " + formatPrice(basketTotal.value);
-  return "https://wa.me/41793917577?text=" + encodeURIComponent(message);
+  const header = "New " + (orderType.value === "delivery" ? "DELIVERY" : "PICK-UP") + " Order\n\nCustomer: " + customerInfo.value.name + "\nPhone: " + customerInfo.value.phone + "\n" + deliveryDetails + (customerInfo.value.notes ? "\nNotes: " + customerInfo.value.notes : "");
+  const orderEn = "\n\n" + ORDER_ITEMS_LABEL_EN + "\n" + itemsListEn + deliveryLineEn + "\n\n" + TOTAL_LABEL_EN + " " + formatPrice(basketTotal.value);
+  const orderTh = "\n\n" + ORDER_ITEMS_LABEL_TH + "\n" + itemsListTh + deliveryLineTh + "\n\n" + TOTAL_LABEL_TH + " " + formatPrice(basketTotal.value);
+  const message = header + orderEn + "\n\n---\n" + orderTh;
+  return "https://wa.me/" + (settings.value.whatsappDelivery || "41793917577") + "?text=" + encodeURIComponent(message);
 };
 
 const resetOrder = () => {
@@ -210,6 +287,21 @@ const resetOrder = () => {
         <span class="icon">🏪</span><span>Pick-up</span>
       </div>
     </div>
+
+    <div v-if="deliveryUnavailable" class="unavailable-banner">
+      <p>No Delivery possible at the moment.</p>
+    </div>
+    <div v-else-if="pickupUnavailable" class="unavailable-banner">
+      <p>No Pick-up possible at the moment.</p>
+    </div>
+    <div v-else-if="showDeliveryHours" class="hours-banner">
+      <p>Delivery hours: {{ settings.deliveryStartTime }} – {{ settings.deliveryEndTime }}</p>
+      <p v-if="deliveryOutsideHours" class="outside-hours">Outside these hours you cannot add items to the basket.</p>
+    </div>
+    <div v-else-if="showPickupHours" class="hours-banner">
+      <p>Pick-up hours: {{ settings.pickupStartTime }} – {{ settings.pickupEndTime }}</p>
+      <p v-if="pickupOutsideHours" class="outside-hours">Outside these hours you cannot add items to the basket.</p>
+    </div>
     
     <div v-if="orderType === 'pickup'" class="delivery-info">
       <img src="/img/qr-location.png" alt="Pick-up location" class="location-qr" />
@@ -223,14 +315,17 @@ const resetOrder = () => {
         <div v-for="category in menuCategories" :key="category.name" class="menu-category">
           <h3>{{ category.name }}</h3>
           <div class="menu-items">
-            <div v-for="item in category.items" :key="item.id" class="menu-item" :class="{ 'topping-disabled': item.isPizzaTopping && !hasPizzaBaguetteInBasket }">
+            <div v-for="item in category.items" :key="item.id" class="menu-item" :class="{ 'topping-disabled': item.isPizzaTopping && !hasPizzaBaguetteInBasket, 'in-basket': getBasketQty(item.id) > 0 }">
               <div class="item-info">
                 <div class="item-name">{{ (item.isPizzaTopping || (category.name === 'Pizza Baguette' && item.id !== 21)) ? 'add ' + item.name : item.name }}</div>
                 <div v-if="item.description" class="item-description">{{ item.description }}</div>
                 <p v-else-if="item.isPizzaTopping && !hasPizzaBaguetteInBasket" class="topping-hint">Add Pizza Baguette to basket first</p>
                 <div class="item-price">{{ formatPrice(item.price) }}</div>
               </div>
-              <button type="button" class="add-btn" :disabled="!canAddTopping(item)" @click="addToBasket(item)">+</button>
+              <div class="add-cell">
+                <button type="button" class="add-btn" :disabled="!canAddTopping(item) || basketDisabled" @click="addToBasket(item)">+</button>
+                <span v-if="getBasketQty(item.id) > 0" class="item-qty">{{ getBasketQty(item.id) }}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -330,21 +425,32 @@ const resetOrder = () => {
 .delivery-info p { font-family: "Montserrat-LightItalic"; color: #888; }
 .delivery-info .maps-link { display: block; margin-top: 8px; font-family: "Montserrat-Medium"; color: #ffc300; text-decoration: none; }
 .delivery-info .maps-link:hover { text-decoration: underline; }
+.unavailable-banner { text-align: center; padding: 20px; margin-bottom: 20px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 10px; }
+.unavailable-banner p { margin: 0; font-family: "Montserrat-Medium"; color: #fca5a5; font-size: 1.1rem; }
+.hours-banner { text-align: center; padding: 16px; margin-bottom: 20px; background: #0a0a0a; border: 1px solid #222; border-radius: 10px; }
+.hours-banner p { margin: 0 0 6px 0; font-family: "Montserrat-Medium"; color: #ccc; font-size: 0.95rem; }
+.hours-banner p:last-child { margin-bottom: 0; }
+.hours-banner .outside-hours { color: #888; font-size: 0.9rem; }
 .content-wrapper { display: grid; grid-template-columns: 1fr; gap: 30px; }
 @media screen and (min-width: 768px) { .content-wrapper { grid-template-columns: 1fr 400px; } }
 .menu-section h2 { font-family: "Montserrat-Bold"; margin-bottom: 20px; color: #fff; text-transform: uppercase; letter-spacing: 2px; }
 .menu-category { margin-bottom: 30px; }
 .menu-category h3 { font-family: "Montserrat-Bold"; color: #ffc300; font-size: 1.2em; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #222; text-transform: uppercase; letter-spacing: 2px; }
 .menu-items { display: flex; flex-direction: column; gap: 10px; }
-.menu-item { display: flex; justify-content: space-between; align-items: center; background: #0a0a0a; padding: 15px; border-radius: 10px; transition: background 0.2s; border: 1px solid #1a1a1a; }
+.menu-item { display: flex; justify-content: space-between; align-items: center; background: #0a0a0a; padding: 15px; border-radius: 10px; transition: background 0.2s, border-color 0.2s; border: 1px solid #1a1a1a; }
 .menu-item.topping-disabled { opacity: 0.7; }
+.menu-item.in-basket { border: 2px solid rgba(255, 195, 0, 0.7); background: rgba(255, 195, 0, 0.08); }
+.menu-item.in-basket:hover { background: rgba(255, 195, 0, 0.12); }
 .topping-hint { font-family: "Montserrat-LightItalic"; font-size: 0.8em; color: #666; margin: 4px 0 0 0; }
 .menu-item:hover { background: #111; border-color: #222; }
+.menu-item.in-basket:hover { border-color: rgba(255, 195, 0, 0.85); }
 .item-info { flex: 1; padding-right: 15px; }
 .item-name { font-family: "Montserrat-Medium"; font-weight: bold; margin-bottom: 5px; color: #fff; }
 .item-description { font-family: "Montserrat-LightItalic"; font-style: italic; color: #666; font-size: 0.85em; margin-bottom: 8px; line-height: 1.4; }
 .item-price { font-family: "Montserrat-Light"; color: #ffc300; font-weight: bold; }
-.add-btn { width: 40px; height: 40px; border-radius: 50%; background: #ffc300; color: #000; border: none; font-size: 1.5em; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.add-cell { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.item-qty { font-family: "Montserrat-Light"; color: #ffc300; font-weight: bold; font-size: 1em; min-width: 1.2em; text-align: right; }
+.add-btn { width: 40px; height: 40px; border-radius: 50%; background: #ffc300; color: #000; border: none; font-size: 1.5em; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
 .add-btn:hover { background: #e6b000; transform: scale(1.1); }
 .add-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 .add-btn:disabled:hover { background: #ffc300; }

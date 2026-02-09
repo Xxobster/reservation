@@ -5,6 +5,7 @@ const notFound = require("../middleware/notFound");
 const errorHandler = require("../middleware/errorHandler");
 const tableRouter = require("../routes/table.router");
 const reservationRouter = require("../routes/reservation.router");
+const settingsRouter = require("../routes/settings.router");
 const createServer = () => {
   const app = express();
 
@@ -14,6 +15,7 @@ const createServer = () => {
   app.use("/api/v1", require("../routes"));
   app.use("/api/v1/tables", tableRouter);
   app.use("/api/v1/reservations", reservationRouter);
+  app.use("/api/v1/settings", settingsRouter);
   app.use(notFound);
   app.use(errorHandler);
   return app;

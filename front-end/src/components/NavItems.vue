@@ -12,6 +12,7 @@ import LoginIcon from "~icons/mdi/login";
 import DeliveryIcon from "~icons/mdi/truck-delivery";
 import HandshakeIcon from "~icons/mdi/handshake";
 import MenuBookIcon from "~icons/mdi/book-open-variant";
+import SettingsIcon from "~icons/mdi/cog";
 
 const props = defineProps({
   /** When provided by App.vue, navbar updates immediately on PIN success without refresh */
@@ -95,6 +96,11 @@ onUnmounted(() => {
     <NavItem v-if="isAdmin" route-name="add-table" text="Add Table">
       <template #icon>
         <PlusIcon />
+      </template>
+    </NavItem>
+    <NavItem v-if="isAdmin" route-name="admin-settings" text="Settings">
+      <template #icon>
+        <SettingsIcon />
       </template>
     </NavItem>
     

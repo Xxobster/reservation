@@ -1,4 +1,5 @@
 const dateTimeValidator = require("../utils/dateAndTimeValidator");
+const { readSettings } = require("../utils/settingsReader");
 
 /* =========================
    READ
@@ -51,12 +52,14 @@ const validateTime = (currDate, resDate, resTime) => {
 };
 
 const checkClosingOpeningTime = (resTime) => {
-  if (resTime > "21:00:00") {
+  // Normalize HH:MM to HH:MM:00 so "11:00" is not treated as before "11:00:00"
+  const t = (resTime && resTime.length === 5) ? resTime + ":00" : resTime;
+  if (t > "21:00:00") {
     throw {
       status: 400,
       message: "Reservations cannot be made after 9:00 PM",
     };
-  } else if (resTime < "11:00:00") {
+  } else if (t < "11:00:00") {
     throw {
       status: 400,
       message: "Reservations cannot be made before 11:00 AM",
@@ -179,12 +182,14 @@ const checkAlternatives = async (tableDAO, params) => {
     alternatives.hasChairSeats = !!chairTable;
   }
   
-  // Check if other table type is available
+  // Check if other table type is available (use durations from params if passed from registerReservation)
+  const durationStandard = params.durationStandardMin ?? 60;
+  const durationRaclette = params.durationRacletteMin ?? 120;
   if (table_type_req === 'raclette') {
     const standardTable = await tableDAO.findAvailableTable({
       resDate,
       resTime,
-      durationMin: 60, // Standard is 1 hour
+      durationMin: durationStandard,
       people,
       table_type_req: 'standard',
       seating_type_req: 'chairs',
@@ -194,7 +199,7 @@ const checkAlternatives = async (tableDAO, params) => {
     const racletteTable = await tableDAO.findAvailableTable({
       resDate,
       resTime,
-      durationMin: 120, // Raclette is 2 hours
+      durationMin: durationRaclette,
       people,
       table_type_req: 'raclette',
       seating_type_req: 'chairs',
@@ -271,9 +276,12 @@ const registerReservation = async (reservationDAO, payload, tableDAO) => {
     };
   }
 
-  // Set duration based on table type: standard = 60 min (1h), raclette = 120 min (2h)
+  // Set duration from settings: Raclette and Standard durations (minutes)
+  const settings = readSettings();
+  const durationRacletteMin = settings.reservationDurationRacletteMin ?? 120;
+  const durationStandardMin = settings.reservationDurationStandardMin ?? 60;
   const tableType = payload.table_type_req || "standard";
-  const durationMin = tableType === "raclette" ? 120 : 60;
+  const durationMin = tableType === "raclette" ? durationRacletteMin : durationStandardMin;
   payload.durationMin = durationMin;
   const seatingType = payload.seating_type_req || "chairs";
 
@@ -293,6 +301,8 @@ const registerReservation = async (reservationDAO, payload, tableDAO) => {
       resDate: payload.resDate,
       resTime: payload.resTime,
       durationMin,
+      durationRacletteMin,
+      durationStandardMin,
       people: payload.people,
       table_type_req: tableType,
       seating_type_req: seatingType,
@@ -329,16 +339,20 @@ const registerReservation = async (reservationDAO, payload, tableDAO) => {
       });
     }
     
-    // Return combined confirmation
+    // Return combined confirmation (re-read settings for duration)
+    const latestSettings = readSettings();
+    const confirmDuration = tableType === "raclette"
+      ? (latestSettings.reservationDurationRacletteMin ?? 120)
+      : (latestSettings.reservationDurationStandardMin ?? 60);
     const tableNames = assignedTables.map(t => t.table.name).join(' + ');
     return {
       reservation: null,
       confirmation: {
         resDate: payload.resDate,
         resTime: payload.resTime,
-        durationMin: durationMin,
+        durationMin: Number(confirmDuration),
         people: payload.people,
-        tableType: tableType === 'raclette' ? 'raclette' : 'standard',
+        tableType: (tableType === 'raclette' ? 'raclette' : 'standard'),
         seatingType: tableResult.seating_type || 'floor',
         tableName: tableNames,
         isSplitBooking: true,
@@ -350,15 +364,21 @@ const registerReservation = async (reservationDAO, payload, tableDAO) => {
     
     await reservationDAO.setReservationTable(reservation.id, tableResult.id);
     reservation = await reservationDAO.findReservationById(reservation.id);
-    
+
+    // Re-read settings so confirmation duration always matches current admin settings
+    const latestSettings = readSettings();
+    const confirmDuration = tableType === "raclette"
+      ? (latestSettings.reservationDurationRacletteMin ?? 120)
+      : (latestSettings.reservationDurationStandardMin ?? 60);
+
     return {
       reservation,
       confirmation: {
         resDate: payload.resDate,
         resTime: payload.resTime,
-        durationMin: durationMin,
+        durationMin: Number(confirmDuration),
         people: payload.people,
-        tableType: tableType,
+        tableType: String(tableType).toLowerCase(),
         seatingType: tableResult.seating_type || seatingType,
         tableName: tableResult.name,
       }
