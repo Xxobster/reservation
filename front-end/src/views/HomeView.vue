@@ -58,8 +58,10 @@ onMounted(async () => {
       <div class="action-card">
         <h3>Find Us</h3>
         <p class="location-text">Don Det, Sunset Side</p>
-        <img src="/img/qr-location.png" alt="Location QR" class="qr-code" />
-        <p class="qr-hint">Scan for directions</p>
+        <a href="https://maps.app.goo.gl/SDYeaQo3KvvP4qxK6" target="_blank" rel="noopener noreferrer" class="qr-link">
+          <img src="/img/qr-location.png" alt="Location QR" class="qr-code" />
+        </a>
+        <p class="qr-hint">Click or Scan for directions</p>
       </div>
     </div>
 
@@ -73,7 +75,7 @@ onMounted(async () => {
       <div class="highlight-item">
         <span class="highlight-icon">🥖</span>
         <h4>French Baguettes</h4>
-        <p>From the French bakery <a href="https://maps.app.goo.gl/sy2JVzvVGA2uVLLV6" target="_blank" rel="noopener noreferrer" class="highlight-link">La Boulange</a> in Pakse</p>
+        <p>From the French bakery <a href="https://maps.app.goo.gl/8u2irRVBtVXzvPLo9" target="_blank" rel="noopener noreferrer" class="highlight-link">La Boulange</a> in Pakse</p>
       </div>
       <div class="highlight-item">
         <span class="highlight-icon">🍷</span>
@@ -225,6 +227,11 @@ onMounted(async () => {
   font-family: "Montserrat-Light";
   color: #fff;
   margin-bottom: 15px;
+}
+
+.qr-link {
+  display: inline-block;
+  text-decoration: none;
 }
 
 .qr-code {

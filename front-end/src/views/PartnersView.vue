@@ -2,7 +2,7 @@
 const partners = [
   {
     name: "La Boulange French Bakery",
-    url: "https://maps.app.goo.gl/sy2JVzvVGA2uVLLV6",
+    url: "https://maps.app.goo.gl/8u2irRVBtVXzvPLo9",
     description: "An artisanal French bakery and café in Pakse offering authentic pastries, fresh baguettes, and rich coffee in a warm, Parisian-inspired setting.",
   },
   {
