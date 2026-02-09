@@ -225,7 +225,7 @@ const resetOrder = () => {
           <div class="menu-items">
             <div v-for="item in category.items" :key="item.id" class="menu-item" :class="{ 'topping-disabled': item.isPizzaTopping && !hasPizzaBaguetteInBasket }">
               <div class="item-info">
-                <div class="item-name">{{ item.name }}</div>
+                <div class="item-name">{{ (item.isPizzaTopping || (category.name === 'Pizza Baguette' && item.id !== 21)) ? 'add ' + item.name : item.name }}</div>
                 <div v-if="item.description" class="item-description">{{ item.description }}</div>
                 <p v-else-if="item.isPizzaTopping && !hasPizzaBaguetteInBasket" class="topping-hint">Add Pizza Baguette to basket first</p>
                 <div class="item-price">{{ formatPrice(item.price) }}</div>
