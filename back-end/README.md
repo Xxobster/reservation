@@ -45,7 +45,19 @@ back-end\
  - **Dependency managment**: [npm](https://npmjs.com/)
  - **Environment variables**: [dotenv](https://github.com/motdotla/dotenv)
  - **Cross-Origin Resource-Sharing**: [cors](https://github.com/expressjs/cors)
+ - **Email (optional)**: [nodemailer](https://nodemailer.com/) – for sending new-reservation notifications to PetuniaSch59@gmail.com and sylvain.atw@gmail.com
 
+### Reservation email notifications (optional)
+
+When a new reservation is created, the server can send a notification email to two addresses with full reservation details (date, time, people, customer name/email/phone, table type, seating, table name, duration). To enable it, add to your `.env`:
+
+- `SMTP_HOST` – e.g. `smtp.gmail.com`
+- `SMTP_PORT` – e.g. `587`
+- `SMTP_USER` – your SMTP login (e.g. Gmail address)
+- `SMTP_PASS` – your SMTP password (for Gmail use an [App Password](https://support.google.com/accounts/answer/185833))
+- `SMTP_FROM` (optional) – sender address shown in the email
+
+If these are not set, reservation creation still works; no email is sent and a warning is logged.
 
 ## Diagrams
 

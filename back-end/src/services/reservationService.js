@@ -1,5 +1,6 @@
 const dateTimeValidator = require("../utils/dateAndTimeValidator");
 const { readSettings } = require("../utils/settingsReader");
+const { sendReservationNotification } = require("../utils/emailSender");
 
 /* =========================
    READ
@@ -427,17 +428,37 @@ const registerReservation = async (reservationDAO, payload, tableDAO) => {
     ? (latestSettings.reservationDurationRacletteMin ?? 120)
     : (latestSettings.reservationDurationStandardMin ?? 60);
 
+  // Table display: same as reservations page – base name + (number of people), not table capacity
+  const tableBaseName = (tableResult.name || "").replace(/\s*\(\d+\)\s*$/, "");
+  const tableDisplayName = tableBaseName ? `${tableBaseName} (${payload.people})` : tableResult.name;
+
+  const confirmation = {
+    resDate: payload.resDate,
+    resTime: payload.resTime,
+    durationMin: Number(confirmDuration),
+    people: payload.people,
+    tableType: String(tableType).toLowerCase(),
+    seatingType: tableResult.seating_type || seatingType,
+    tableName: tableResult.name,
+  };
+
+  sendReservationNotification({
+    firstName: payload.firstName,
+    lastName: payload.lastName,
+    email: payload.email,
+    phone: payload.phone,
+    resDate: payload.resDate,
+    resTime: payload.resTime,
+    people: payload.people,
+    tableType: confirmation.tableType,
+    seatingType: confirmation.seatingType,
+    tableName: tableDisplayName,
+    durationMin: confirmation.durationMin,
+  }).catch(() => {});
+
   return {
     reservation,
-    confirmation: {
-      resDate: payload.resDate,
-      resTime: payload.resTime,
-      durationMin: Number(confirmDuration),
-      people: payload.people,
-      tableType: String(tableType).toLowerCase(),
-      seatingType: tableResult.seating_type || seatingType,
-      tableName: tableResult.name,
-    }
+    confirmation,
   };
 };
 

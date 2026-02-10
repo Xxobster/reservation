@@ -1,12 +1,31 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import ButtonFilled from "@/components/ButtonFilled.vue";
-import { getSettings, updateSettings } from "@/services/settingsAPI";
+import { getSettings, updateSettings, restartBackend } from "@/services/settingsAPI";
 
 const loading = ref(true);
 const saving = ref(false);
 const success = ref(false);
 const error = ref(null);
+
+const restarting = ref(false);
+const restartMessage = ref(null);
+
+const doRestartBackend = async () => {
+  restarting.value = true;
+  restartMessage.value = null;
+  try {
+    await restartBackend();
+    restartMessage.value = { type: "success", text: "Backend restart triggered. It will be back in a few seconds." };
+  } catch (e) {
+    restartMessage.value = {
+      type: "error",
+      text: e.response?.data?.message || "Failed to trigger restart.",
+    };
+  } finally {
+    restarting.value = false;
+  }
+};
 
 const form = ref({
   whatsappGeneral: "",
@@ -170,6 +189,19 @@ onMounted(load);
         <p v-if="error" class="error-msg">{{ error }}</p>
         <p v-if="success" class="success-msg">Settings saved.</p>
         <ButtonFilled type="submit" class="submit-btn" :text="saving ? 'Saving…' : 'Save settings'" :disabled="saving" />
+
+        <section class="section">
+          <h2>Restart backend</h2>
+          <p class="hint">Restart the API server. The page may briefly lose connection; refresh after a few seconds.</p>
+          <ButtonFilled
+            type="button"
+            class="restart-btn"
+            :text="restarting ? 'Restarting…' : 'Restart backend'"
+            :disabled="restarting"
+            @click="doRestartBackend"
+          />
+          <p v-if="restartMessage" :class="restartMessage.type === 'success' ? 'success-msg' : 'error-msg'">{{ restartMessage.text }}</p>
+        </section>
       </form>
     </div>
   </div>
@@ -195,6 +227,7 @@ onMounted(load);
 }
 .section h2 { font-family: "Montserrat-Bold"; color: #ffc300; font-size: 1.1rem; margin: 0 0 12px 0; text-transform: uppercase; letter-spacing: 1px; }
 .hint { color: #666; font-size: 0.85rem; margin: 6px 0 12px 0; }
+.hint code { background: #222; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.85em; }
 .field { margin-bottom: 14px; }
 .field label { display: block; margin-bottom: 6px; font-size: 0.9rem; color: #ccc; }
 .input {
@@ -238,4 +271,5 @@ onMounted(load);
 .error-msg { color: #ef4444; margin-bottom: 12px; }
 .success-msg { color: #22c55e; margin-bottom: 12px; }
 .submit-btn { margin-top: 8px; }
+.restart-btn { margin-top: 8px; }
 </style>

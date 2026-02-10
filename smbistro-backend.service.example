@@ -1,0 +1,27 @@
+# Example systemd unit to start the backend at boot.
+# 1. Copy to systemd and edit the path:
+#      sudo cp smbistro-backend.service.example /etc/systemd/system/smbistro-backend.service
+#      sudo nano /etc/systemd/system/smbistro-backend.service
+#    Set the correct path in ExecStart (replace /path/to/restaurant-table-reservation-system).
+# 2. Enable and start:
+#      sudo systemctl daemon-reload
+#      sudo systemctl enable smbistro-backend
+#      sudo systemctl start smbistro-backend
+# 3. Check status:
+#      sudo systemctl status smbistro-backend
+#
+# The service runs start-all.sh once at boot, which starts the Node backend in a screen session.
+# Nginx (for the frontend) is usually already enabled: sudo systemctl enable nginx
+
+[Unit]
+Description=S&M Bistro backend (start in screen at boot)
+After=network.target mysql.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/path/to/restaurant-table-reservation-system
+ExecStart=/path/to/restaurant-table-reservation-system/start-all.sh
+
+[Install]
+WantedBy=multi-user.target
