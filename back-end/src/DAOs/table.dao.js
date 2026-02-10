@@ -25,6 +25,7 @@ const findAllTables = async (filterDate = null, filterTime = null) => {
              ), 0
            ) AS bookedSeats
     FROM Tables t
+    WHERE t.name NOT LIKE '%Damien burlot%'
     ORDER BY t.name ASC
     `,
     {
@@ -93,14 +94,35 @@ const findAvailableTable = async ({
     });
   }
 
-  // For STANDARD tables: use exclusive booking logic
+  // STANDARD (private) tables: exclusive use — no overlapping reservations on the same table.
+  // If e.g. T2 has 1 person at 4pm (90 min), next availability for T2 is 5:30pm (start + duration).
+  // For Standard + Chairs: include T7 (bookable as standard or raclette), priority T1 → T8 → T7
+  const isStandardChairs = table_type_req === "standard" && seating_type_req === "chairs";
+  const tableCondition = isStandardChairs
+    ? `(t.table_type = 'standard' OR t.name LIKE '%Table 7%') AND t.seating_type = 'chairs'`
+    : `t.table_type = :table_type AND t.seating_type = :seating_type`;
+
+  const orderClause = isStandardChairs
+    ? `ORDER BY CASE WHEN t.name LIKE '%Table 1%' THEN 1 WHEN t.name LIKE '%Table 8%' THEN 2 WHEN t.name LIKE '%Table 7%' THEN 3 ELSE 4 END, t.capacity ASC, t.id ASC`
+    : `ORDER BY t.capacity ASC, t.id ASC`;
+
+  const resTimeNorm = (resTime && resTime.length === 5) ? resTime + ":00" : resTime;
+  const replacements = {
+    resDate,
+    resTime: resTimeNorm,
+    duration: durationMin,
+    people,
+    table_type: table_type_req,
+    seating_type: seating_type_req,
+  };
+
   const results = await db.sequelize.query(
     `
     SELECT t.*
     FROM Tables t
-    WHERE t.table_type = :table_type
-      AND t.seating_type = :seating_type
+    WHERE ${tableCondition}
       AND t.capacity >= :people
+      AND t.name NOT LIKE '%Damien burlot%'
       AND NOT EXISTS (
         SELECT 1
         FROM Reservations r
@@ -111,18 +133,11 @@ const findAvailableTable = async ({
           AND DATE_ADD(TIMESTAMP(r.resDate, r.resTime), INTERVAL r.durationMin MINUTE)
               > TIMESTAMP(:resDate, :resTime)
       )
-    ORDER BY t.capacity ASC, t.id ASC
+    ${orderClause}
     LIMIT 1
     `,
     {
-      replacements: {
-        resDate,
-        resTime,
-        duration: durationMin,
-        people,
-        table_type: table_type_req,
-        seating_type: seating_type_req,
-      },
+      replacements,
       type: QueryTypes.SELECT,
     }
   );
@@ -130,15 +145,18 @@ const findAvailableTable = async ({
   return results.length ? results[0] : null;
 };
 
-// Find available raclette table with shared seating
-// Priority: Table 5 → Table 6 → Table 7 → Tables 2+3 combined
+// Raclette tables (T5, T6, T7): shared by SEATS. Time reservation is per seat.
+// bookedSeats = sum of people from reservations that OVERLAP the requested window.
+// First table in order T5 → T6 → T7 with (capacity - bookedSeats) >= people is assigned.
+// E.g. 4p at 6pm and 2p at 7pm on T5 (120 min): at 8pm the 4 seats free → next 4p at 8pm;
+// at 9pm the 2 seats free → next 2p at 9pm.
 const findAvailableRacletteTable = async ({
   resDate,
   resTime,
   durationMin,
   people,
 }) => {
-  // Get raclette tables ordered by priority (name contains 5, 6, 7)
+  const resTimeNorm = (resTime && resTime.length === 5) ? resTime + ":00" : resTime;
   const racletteTables = await db.sequelize.query(
     `
     SELECT t.*,
@@ -155,6 +173,7 @@ const findAvailableRacletteTable = async ({
            ) AS bookedSeats
     FROM Tables t
     WHERE t.table_type = 'raclette'
+      AND (t.name LIKE '%Table 5%' OR t.name LIKE '%Table 6%' OR t.name LIKE '%Table 7%')
     ORDER BY 
       CASE 
         WHEN t.name LIKE '%Table 5%' THEN 1
@@ -166,127 +185,17 @@ const findAvailableRacletteTable = async ({
     {
       replacements: {
         resDate,
-        resTime,
+        resTime: resTimeNorm,
         duration: durationMin,
       },
       type: QueryTypes.SELECT,
     }
   );
 
-  // Find first table with enough available seats
   for (const table of racletteTables) {
     const availableSeats = table.capacity - table.bookedSeats;
     if (availableSeats >= people) {
       return table;
-    }
-  }
-
-  // Fallback: Check if Tables 2+3 combined can accommodate (floor seating only)
-  const fallbackResult = await findCombinedFloorTables({
-    resDate,
-    resTime,
-    durationMin,
-    people,
-  });
-
-  return fallbackResult;
-};
-
-// Find combined Tables 2+3 for raclette overflow
-const findCombinedFloorTables = async ({
-  resDate,
-  resTime,
-  durationMin,
-  people,
-}) => {
-  // Check available seats on Tables 2 and 3 combined
-  const floorTables = await db.sequelize.query(
-    `
-    SELECT t.*,
-           COALESCE(
-             (SELECT SUM(r.people)
-              FROM Reservations r
-              WHERE r.tableId = t.id
-                AND r.resStatus != 'missed'
-                AND TIMESTAMP(r.resDate, r.resTime)
-                    < DATE_ADD(TIMESTAMP(:resDate, :resTime), INTERVAL :duration MINUTE)
-                AND DATE_ADD(TIMESTAMP(r.resDate, r.resTime), INTERVAL r.durationMin MINUTE)
-                    > TIMESTAMP(:resDate, :resTime)
-             ), 0
-           ) AS bookedSeats
-    FROM Tables t
-    WHERE (t.name LIKE '%Table 2%' OR t.name LIKE '%Table 3%')
-      AND t.seating_type = 'floor'
-    ORDER BY t.name ASC
-    `,
-    {
-      replacements: {
-        resDate,
-        resTime,
-        duration: durationMin,
-      },
-      type: QueryTypes.SELECT,
-    }
-  );
-
-  if (floorTables.length < 2) return null;
-
-  // Calculate total available seats across Tables 2 and 3
-  let totalAvailable = 0;
-  const tableSeats = [];
-
-  for (const table of floorTables) {
-    const availableSeats = table.capacity - parseInt(table.bookedSeats);
-    totalAvailable += availableSeats;
-    tableSeats.push({
-      table,
-      availableSeats,
-    });
-  }
-
-  // If combined tables have enough seats
-  if (totalAvailable >= people) {
-    // Check if single table can accommodate
-    for (const { table, availableSeats } of tableSeats) {
-      if (availableSeats >= people) {
-        return {
-          ...table,
-          table_type: 'raclette',
-          is_combined_floor: true,
-        };
-      }
-    }
-    
-    // Need to split across both tables - return both tables with allocation info
-    let remainingPeople = people;
-    const allocations = [];
-    
-    for (const { table, availableSeats } of tableSeats) {
-      if (remainingPeople <= 0) break;
-      if (availableSeats <= 0) continue;
-      
-      const seatsToBook = Math.min(availableSeats, remainingPeople);
-      allocations.push({
-        table: {
-          ...table,
-          table_type: 'raclette',
-          is_combined_floor: true,
-        },
-        seatsToBook,
-      });
-      remainingPeople -= seatsToBook;
-    }
-    
-    // Return special object indicating split booking is needed
-    if (allocations.length > 1) {
-      return {
-        isSplitBooking: true,
-        allocations,
-        table_type: 'raclette',
-        seating_type: 'floor',
-      };
-    } else if (allocations.length === 1) {
-      return allocations[0].table;
     }
   }
 

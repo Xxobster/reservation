@@ -3,6 +3,8 @@ import { ref, computed, onMounted } from "vue";
 import ButtonFilled from "@/components/ButtonFilled.vue";
 import { getSettings } from "@/services/settingsAPI";
 
+const showPaymentsFullscreen = ref(false);
+
 // Delivery / Pick-up menu
 const menuCategories = ref([
   {
@@ -59,6 +61,12 @@ const menuCategories = ref([
     ]
   },
   {
+    name: "DRINKS",
+    items: [
+      { id: 36, name: "Choco Shake", nameTh: "ช็อกโกแลตเชค", price: 35000, description: "" },
+    ]
+  },
+  {
     name: "Pizza Baguette",
     items: [
       { id: 21, name: "Pizza Baguette", nameTh: "พิซซ่าบาแกตต์", price: 120000, description: "Crispy French baguette, tomato sauce, mozzarella & oregano" },
@@ -104,7 +112,7 @@ onMounted(async () => {
 });
 
 const orderType = ref("delivery");
-const customerInfo = ref({ name: "", phone: "", guesthouse: "", roomNumber: "", notes: "" });
+const customerInfo = ref({ name: "", phone: "", guesthouse: "", roomNumber: "", pickupTime: "", notes: "" });
 const basket = ref([]);
 
 function parseTimeToMinutes(hhmm) {
@@ -119,6 +127,28 @@ function isWithinHours(startHhmm, endHhmm) {
   if (start <= end) return current >= start && current <= end;
   return current >= start || current <= end;
 }
+
+// Current time in minutes since midnight (for pick-up slot filtering)
+const nowMinutes = () => {
+  const d = new Date();
+  return d.getHours() * 60 + d.getMinutes();
+};
+
+// Pick-up time slots: only times from now until 21:00, in 30-min steps (e.g. 19:55 -> 20:00, 20:30, 21:00)
+const pickupTimeSlots = computed(() => {
+  const current = nowMinutes();
+  const slots = [];
+  for (let hour = 11; hour <= 21; hour++) {
+    for (let min = 0; min < 60; min += 30) {
+      if (hour === 21 && min > 0) break;
+      const slotMins = hour * 60 + min;
+      if (slotMins > current) slots.push(`${String(hour).padStart(2, "0")}:${String(min).padStart(2, "0")}`);
+    }
+  }
+  return slots;
+});
+
+const pickupTimeSlotsEmpty = computed(() => pickupTimeSlots.value.length === 0);
 
 const withinDeliveryHours = computed(() => isWithinHours(settings.value.deliveryStartTime, settings.value.deliveryEndTime));
 const withinPickupHours = computed(() => isWithinHours(settings.value.pickupStartTime, settings.value.pickupEndTime));
@@ -196,6 +226,11 @@ const submitOrder = () => {
   if (!customerInfo.value.phone) { orderError.value = "Please enter your phone number"; return; }
   if (orderType.value === "delivery" && !customerInfo.value.guesthouse) { orderError.value = "Please enter your guesthouse/hotel name"; return; }
   if (orderType.value === "delivery" && !customerInfo.value.roomNumber) { orderError.value = "Please enter your room number"; return; }
+  if (orderType.value === "pickup") {
+    if (!customerInfo.value.pickupTime) { orderError.value = "Please select a pick-up time"; return; }
+    const chosenMins = parseTimeToMinutes(customerInfo.value.pickupTime);
+    if (chosenMins <= nowMinutes()) { orderError.value = "Pick-up time must be in the future."; return; }
+  }
   if (orderType.value === "delivery" && typeof navigator !== "undefined" && navigator.geolocation) {
     isRequestingLocation.value = true;
     navigator.geolocation.getCurrentPosition(
@@ -245,7 +280,7 @@ const getWhatsAppOrderUrl = () => {
       deliveryDetails += "\n\nhttps://www.google.com/maps?q=" + loc.lat + "," + loc.lng;
     }
   } else {
-    deliveryDetails = "Pick-up at restaurant";
+    deliveryDetails = "Pick-up at restaurant" + (customerInfo.value.pickupTime ? "\nPick-up time: " + customerInfo.value.pickupTime : "");
   }
   const header = "New " + (orderType.value === "delivery" ? "DELIVERY" : "PICK-UP") + " Order\n\nCustomer: " + customerInfo.value.name + "\nPhone: " + customerInfo.value.phone + "\n" + deliveryDetails + (customerInfo.value.notes ? "\nNotes: " + customerInfo.value.notes : "");
   const orderEn = "\n\n" + ORDER_ITEMS_LABEL_EN + "\n" + itemsListEn + deliveryLineEn + "\n\n" + TOTAL_LABEL_EN + " " + formatPrice(basketTotal.value);
@@ -256,7 +291,7 @@ const getWhatsAppOrderUrl = () => {
 
 const resetOrder = () => {
   basket.value = [];
-  customerInfo.value = { name: "", phone: "", guesthouse: "", roomNumber: "", notes: "" };
+  customerInfo.value = { name: "", phone: "", guesthouse: "", roomNumber: "", pickupTime: "", notes: "" };
   customerLocation.value = null;
   try { sessionStorage.removeItem("deliveryLocation"); } catch (_) {}
   isOrderSubmitted.value = false;
@@ -374,6 +409,14 @@ const resetOrder = () => {
             <input type="tel" v-model="customerInfo.phone" placeholder="Phone Number *" class="form-input" />
             <input v-if="orderType === 'delivery'" type="text" v-model="customerInfo.guesthouse" placeholder="Guesthouse/Hotel Name *" class="form-input" />
             <input v-if="orderType === 'delivery'" type="text" v-model="customerInfo.roomNumber" placeholder="Room Number *" class="form-input" />
+            <div v-if="orderType === 'pickup'" class="select-group time-select">
+              <label for="pickup-time">Pick-up time *</label>
+              <p v-if="pickupTimeSlotsEmpty" class="pickup-no-slots">No pick-up slots left for today. Last slot is 21:00.</p>
+              <select v-else id="pickup-time" v-model="customerInfo.pickupTime" class="form-input form-select">
+                <option value="" disabled>Select time...</option>
+                <option v-for="time in pickupTimeSlots" :key="time" :value="time">{{ time }}</option>
+              </select>
+            </div>
             <textarea v-model="customerInfo.notes" placeholder="Special requests (optional)" class="form-input" rows="2"></textarea>
           </div>
 
@@ -402,9 +445,46 @@ const resetOrder = () => {
         <p>💵 Cash on Pick-up</p>
         <p>📱 BCEL / LDB QR Code</p>
         <p>💳 Revolut / Wise (+5% surcharge)</p>
-        <img src="/img/payments.png" alt="Payment methods" class="payments-img" />
+        <img
+          src="/img/payments.png"
+          alt="Payment methods"
+          class="payments-img payments-img-clickable"
+          role="button"
+          tabindex="0"
+          @click="showPaymentsFullscreen = true"
+          @keydown.enter="showPaymentsFullscreen = true"
+        />
+        <p class="payment-img-hint">Tap image to view full screen</p>
       </template>
     </div>
+
+    <!-- Fullscreen overlay for payment image (mobile-friendly) -->
+    <Teleport to="body">
+      <Transition name="payments-fade">
+        <div
+          v-if="showPaymentsFullscreen"
+          class="payments-fullscreen"
+          role="dialog"
+          aria-label="Payment options full screen"
+          @click.self="showPaymentsFullscreen = false"
+        >
+          <button
+            type="button"
+            class="payments-fullscreen-close"
+            aria-label="Close"
+            @click="showPaymentsFullscreen = false"
+          >
+            ×
+          </button>
+          <img
+            src="/img/payments.png"
+            alt="Payment methods"
+            class="payments-fullscreen-img"
+            @click.stop
+          />
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
@@ -482,6 +562,10 @@ const resetOrder = () => {
 .form-input { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #222; border-radius: 8px; background: #111; color: white; font-size: 1em; box-sizing: border-box; font-family: "Montserrat-Light"; }
 .form-input:focus { outline: none; border-color: #ffc300; }
 .form-input::placeholder { color: #444; }
+.select-group { margin-bottom: 10px; }
+.select-group label { display: block; font-family: "Montserrat-Medium"; color: #fff; font-size: 14px; margin-bottom: 8px; }
+.select-group .form-select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23ffc300' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
+.pickup-no-slots { margin: 0; padding: 12px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; color: #fca5a5; font-family: "Montserrat-Light"; font-size: 0.95em; }
 .error-message { background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #ef4444; padding: 10px; border-radius: 8px; text-align: center; }
 .order-confirmed { text-align: center; padding: 20px; background: rgba(255, 195, 0, 0.1); border: 1px solid #ffc300; border-radius: 10px; }
 .success-icon { width: 60px; height: 60px; background: #ffc300; color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2em; margin: 0 auto 15px; }
@@ -511,4 +595,57 @@ const resetOrder = () => {
 .payment-info h3 { margin-bottom: 20px; font-family: "Montserrat-Bold"; color: #ffc300; text-transform: uppercase; letter-spacing: 2px; }
 .payment-info p { margin: 10px 0; color: #888; font-family: "Montserrat-Light"; }
 .payments-img { max-width: 300px; margin-top: 20px; border-radius: 10px; }
+.payments-img-clickable { cursor: pointer; display: inline-block; }
+.payments-img-clickable:hover { opacity: 0.9; }
+.payment-img-hint { font-size: 0.85em; color: #666; margin-top: 8px; }
+
+.payments-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 50px 20px 20px;
+  box-sizing: border-box;
+  overflow: auto;
+}
+.payments-fullscreen-close {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 10000;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: #ffc300;
+  color: #000;
+  font-size: 1.8rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+}
+.payments-fullscreen-close:hover { background: #e6b000; }
+.payments-fullscreen-img {
+  max-width: 100%;
+  max-height: 100%;
+  height: auto;
+  width: auto;
+  object-fit: contain;
+  border-radius: 10px;
+}
+@media screen and (max-width: 767px) {
+  .payments-fullscreen { padding: 56px 16px 16px; }
+  .payments-fullscreen-close { top: 10px; right: 10px; width: 48px; height: 48px; font-size: 2rem; }
+}
+.payments-fade-enter-active,
+.payments-fade-leave-active { transition: opacity 0.2s ease; }
+.payments-fade-enter-from,
+.payments-fade-leave-to { opacity: 0; }
 </style>

@@ -35,6 +35,11 @@ const partners = [
     url: "https://maps.app.goo.gl/H1ZYn5AP2HvVzqR49",
     description: "A beloved French restaurant in Vang Vieng serving refined cuisine and classic dishes in a stylish setting — a favorite for locals and visitors alike.",
   },
+  {
+    name: "Don Falang - Don Det",
+    url: "https://maps.app.goo.gl/nbVV7M8wfW6NQJo27",
+    description: "Don Falang is a small private island near Don Det offering a peaceful homestay experience, surrounded by the Mekong and far from the noise of the main island.",
+  },
 ];
 </script>
 

@@ -28,6 +28,7 @@ const reservationsWhatsappDisplay = ref("+41 79 391 75 77");
 const reservationsWhatsappUrl = ref("https://wa.me/41793917577");
 const reservationsEnabled = ref(true);
 const settingsLoading = ref(true);
+const showPaymentsFullscreen = ref(false);
 
 onMounted(async () => {
   try {
@@ -124,12 +125,21 @@ const registerReservation = async () => {
     };
   } catch (err) {
     if (err.response) {
+      const data = err.response.data || {};
       const status = err.response.status;
       if (status === 502 || status === 503) {
         generalError.value = "Server temporarily unavailable. Please try again in a few moments.";
-      } else if (err.response.data && (err.response.data.message || err.response.data.error)) {
-        generalError.value = err.response.data.message ?? err.response.data.error;
-        validationErrors.value = err.response.data.errors;
+      } else if (data.message || data.error) {
+        generalError.value = data.message ?? data.error;
+        validationErrors.value = data.errors;
+      } else if (data.errors && typeof data.errors === "object") {
+        validationErrors.value = data.errors;
+        const parts = [];
+        if (data.errors.email?.length) parts.push("Please enter a valid email address.");
+        if (data.errors.phone?.length) parts.push("Please enter a valid phone number.");
+        if (data.errors.firstName?.length) parts.push("Please enter a valid first name.");
+        if (data.errors.lastName?.length) parts.push("Please enter a valid last name.");
+        generalError.value = parts.length ? parts.join(" ") : "Please check your details and try again.";
       } else {
         generalError.value = "Something went wrong. Please try again.";
       }
@@ -317,8 +327,43 @@ const resetForm = () => {
           </div>
           
           <div class="payment-methods">
-            <img src="/img/payments.png" alt="Accepted payment methods" />
+            <img
+              src="/img/payments.png"
+              alt="Accepted payment methods"
+              class="payments-img-clickable"
+              role="button"
+              tabindex="0"
+              @click="showPaymentsFullscreen = true"
+              @keydown.enter="showPaymentsFullscreen = true"
+            />
           </div>
+
+          <Teleport to="body">
+            <Transition name="payments-fade">
+              <div
+                v-if="showPaymentsFullscreen"
+                class="payments-fullscreen"
+                role="dialog"
+                aria-label="Payment options full screen"
+                @click.self="showPaymentsFullscreen = false"
+              >
+                <button
+                  type="button"
+                  class="payments-fullscreen-close"
+                  aria-label="Close"
+                  @click="showPaymentsFullscreen = false"
+                >
+                  ×
+                </button>
+                <img
+                  src="/img/payments.png"
+                  alt="Payment methods"
+                  class="payments-fullscreen-img"
+                  @click.stop
+                />
+              </div>
+            </Transition>
+          </Teleport>
           
           <button type="button" class="new-reservation-btn" @click="resetForm">Make Another Reservation</button>
         </div>
@@ -602,6 +647,13 @@ const resetForm = () => {
   margin: 0 auto;
 }
 
+.payment-methods .payments-img-clickable {
+  cursor: pointer;
+}
+.payment-methods .payments-img-clickable:hover {
+  opacity: 0.9;
+}
+
 .new-reservation-btn {
   background: #ffc300;
   color: #000;
@@ -661,4 +713,56 @@ const resetForm = () => {
     font-size: 1.5em;
   }
 }
+</style>
+<style>
+/* Fullscreen overlay (teleported to body, so unscoped) */
+.payments-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 50px 20px 20px;
+  box-sizing: border-box;
+  overflow: auto;
+}
+.payments-fullscreen-close {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 10000;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: #ffc300;
+  color: #000;
+  font-size: 1.8rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+}
+.payments-fullscreen-close:hover { background: #e6b000; }
+.payments-fullscreen-img {
+  max-width: 100%;
+  max-height: 100%;
+  height: auto;
+  width: auto;
+  object-fit: contain;
+  border-radius: 10px;
+}
+@media screen and (max-width: 767px) {
+  .payments-fullscreen { padding: 56px 16px 16px; }
+  .payments-fullscreen-close { top: 10px; right: 10px; width: 48px; height: 48px; font-size: 2rem; }
+}
+.payments-fade-enter-active,
+.payments-fade-leave-active { transition: opacity 0.2s ease; }
+.payments-fade-enter-from,
+.payments-fade-leave-to { opacity: 0; }
 </style>

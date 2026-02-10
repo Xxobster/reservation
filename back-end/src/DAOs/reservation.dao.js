@@ -133,6 +133,50 @@ const setReservationStatus = async (reservation, status) => {
   return await reservation.save();
 };
 
+// Count people in reservations that overlap the given time window (legacy / alternative cap)
+const countOverlappingPeople = async (resDate, resTime, durationMin) => {
+  const { QueryTypes } = db.sequelize;
+  const rows = await db.sequelize.query(
+    `
+    SELECT COALESCE(SUM(r.people), 0) AS total
+    FROM Reservations r
+    WHERE r.resStatus != 'missed'
+      AND TIMESTAMP(r.resDate, r.resTime)
+          < DATE_ADD(TIMESTAMP(:resDate, :resTime), INTERVAL :durationMin MINUTE)
+      AND DATE_ADD(TIMESTAMP(r.resDate, r.resTime), INTERVAL r.durationMin MINUTE)
+          > TIMESTAMP(:resDate, :resTime)
+    `,
+    {
+      replacements: { resDate, resTime, durationMin },
+      type: QueryTypes.SELECT,
+    }
+  );
+  const row = Array.isArray(rows) && rows[0] ? rows[0] : null;
+  return row ? Number(row.total) : 0;
+};
+
+// Count people starting at the same 30-min slot (for "12 people per half hour" cap)
+const countPeopleStartingAt = async (resDate, resTime) => {
+  const { QueryTypes } = db.sequelize;
+  const t = String(resTime || "").trim();
+  const normalized = t.length === 5 ? t + ":00" : t;
+  const rows = await db.sequelize.query(
+    `
+    SELECT COALESCE(SUM(r.people), 0) AS total
+    FROM Reservations r
+    WHERE r.resStatus != 'missed'
+      AND r.resDate = :resDate
+      AND TIME(r.resTime) = TIME(:resTime)
+    `,
+    {
+      replacements: { resDate, resTime: normalized },
+      type: QueryTypes.SELECT,
+    }
+  );
+  const row = Array.isArray(rows) && rows[0] ? rows[0] : null;
+  return row ? Number(row.total) : 0;
+};
+
 const setReservationTable = async (reservationId, tableId) => {
   // Get the table to check if it's raclette (shared) or standard (exclusive)
   const table = await Table.findOne({ where: { id: tableId } });
@@ -175,6 +219,8 @@ module.exports = {
   deleteReservation,
   findReservationById,
   findExistingReservationByCustomer,
+  countOverlappingPeople,
+  countPeopleStartingAt,
   setReservationTable,
   setReservationStatus,
 };

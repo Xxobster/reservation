@@ -38,7 +38,7 @@ onMounted(async () => {
       </div>
       
       <div class="hero-image">
-        <img src="/img/raclette2.webp" alt="Raclette" />
+        <img src="/img/outside.png" alt="Restaurant" />
       </div>
     </div>
 
@@ -103,15 +103,17 @@ onMounted(async () => {
 @media (min-width: 768px) {
   .hero-section {
     flex-direction: row;
-    justify-content: center;
-    padding: 60px;
-    gap: 80px;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 60px 24px 60px 60px;
+    gap: 48px;
   }
 }
 
 .hero-content {
   text-align: center;
   max-width: 500px;
+  flex-shrink: 0;
 }
 
 .logo {
@@ -155,16 +157,27 @@ onMounted(async () => {
   }
 }
 
+.hero-image {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  justify-content: flex-end;
+}
+
 .hero-image img {
   max-width: 100%;
   width: 400px;
+  height: auto;
   border-radius: 10px;
   box-shadow: 0 20px 60px rgba(255, 195, 0, 0.2);
 }
 
 @media (min-width: 768px) {
   .hero-image img {
-    width: 500px;
+    width: 100%;
+    max-height: 75vh;
+    object-fit: contain;
+    object-position: right center;
   }
 }
 

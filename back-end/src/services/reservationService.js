@@ -110,21 +110,54 @@ const checkPartySize = (people) => {
    AVAILABILITY HELPERS
 ========================= */
 
+const TIME_SLOTS = [
+  "11:00", "11:30", "12:00", "12:30", "13:00", "13:30",
+  "14:00", "14:30", "15:00", "15:30", "16:00", "16:30",
+  "17:00", "17:30", "18:00", "18:30", "19:00", "19:30",
+  "20:00", "20:30", "21:00"
+];
+
+const MAX_PEOPLE_PER_SLOT = 12;
+
+// Normalize time to "HH:MM" for slot index (handles "14:00", "14:00:00", or "2:00 PM")
+const toSlotKey = (resTime) => {
+  const s = String(resTime || "").trim();
+  if (s.length >= 5 && /^\d{1,2}:\d{2}/.test(s)) {
+    const [h, m] = s.split(":").map(Number);
+    if (h != null && m != null) {
+      const isPm = /pm/i.test(s);
+      const isAm = /am/i.test(s);
+      let hour = h;
+      if (isPm && h < 12) hour = h + 12;
+      else if (isAm && h === 12) hour = 0;
+      else if (!isPm && !isAm && h < 24) hour = h; // already 24h
+      return `${String(hour).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+    }
+  }
+  return s.substring(0, 5);
+};
+
+// Return the slot string exactly 30 minutes after the given "HH:MM" (within opening hours), or null if past 21:00
+const add30Min = (slotKey) => {
+  const [h, m] = slotKey.split(":").map(Number);
+  let nextM = (m ?? 0) + 30;
+  let nextH = h ?? 0;
+  if (nextM >= 60) {
+    nextM = 0;
+    nextH += 1;
+  }
+  if (nextH > 21 || (nextH === 21 && nextM > 0)) return null;
+  return `${String(nextH).padStart(2, "0")}:${String(nextM).padStart(2, "0")}`;
+};
+
 // Find next available time slot for a given configuration
 const findNextAvailableTime = async (tableDAO, params) => {
   const { resDate, resTime, durationMin, people, table_type_req, seating_type_req } = params;
-  const timeSlots = [
-    "11:00", "11:30", "12:00", "12:30", "13:00", "13:30",
-    "14:00", "14:30", "15:00", "15:30", "16:00", "16:30",
-    "17:00", "17:30", "18:00", "18:30", "19:00", "19:30",
-    "20:00", "20:30", "21:00"
-  ];
+  const key = toSlotKey(resTime);
+  const startIndex = TIME_SLOTS.indexOf(key);
   
-  // Find slots after the requested time
-  const startIndex = timeSlots.indexOf(resTime.substring(0, 5));
-  
-  for (let i = startIndex + 1; i < timeSlots.length; i++) {
-    const slot = timeSlots[i];
+  for (let i = startIndex + 1; i < TIME_SLOTS.length; i++) {
+    const slot = TIME_SLOTS[i];
     const table = await tableDAO.findAvailableTable({
       resDate,
       resTime: slot,
@@ -133,17 +166,61 @@ const findNextAvailableTime = async (tableDAO, params) => {
       table_type_req,
       seating_type_req,
     });
-    
-    if (table && !table.isSplitBooking) {
-      return slot;
-    }
-    if (table && table.isSplitBooking && table.allocations) {
-      return slot;
-    }
+    if (table) return slot;
   }
-  
   return null;
 };
+
+// Find next 30-min slot that has capacity (≤12 people starting at that slot). Used for cap-error message.
+// Always check the slot 30 min after the requested time first (e.g. 2pm -> 2:30pm), then continue in order.
+const findNextSlotWithCapacityOnly = async (reservationDAO, params) => {
+  const { resDate, resTime, people } = params;
+  const key = toSlotKey(resTime);
+  const numPeople = Number(people) || 0;
+  // First candidate: exactly 30 minutes after requested (e.g. 14:00 -> 14:30)
+  const firstNext = add30Min(key);
+  if (firstNext && TIME_SLOTS.includes(firstNext)) {
+    const count = await reservationDAO.countPeopleStartingAt(resDate, firstNext);
+    if (count + numPeople <= MAX_PEOPLE_PER_SLOT) return firstNext;
+  }
+  // Then scan from the slot after requested
+  const startIndex = TIME_SLOTS.indexOf(key);
+  for (let i = startIndex + 1; i < TIME_SLOTS.length; i++) {
+    const slot = TIME_SLOTS[i];
+    const peopleStartingAtSlot = await reservationDAO.countPeopleStartingAt(resDate, slot);
+    if (peopleStartingAtSlot + numPeople <= MAX_PEOPLE_PER_SLOT) return slot;
+  }
+  return null;
+};
+
+// Find next time slot where capacity cap (12 people per start slot) and table availability are OK
+const findNextSlotWithCapacity = async (reservationDAO, tableDAO, params) => {
+  const { resDate, resTime, durationMin, people, table_type_req, seating_type_req } = params;
+  const key = toSlotKey(resTime);
+  const startIndex = TIME_SLOTS.indexOf(key);
+  for (let i = startIndex + 1; i < TIME_SLOTS.length; i++) {
+    const slot = TIME_SLOTS[i];
+    const peopleStartingAtSlot = await reservationDAO.countPeopleStartingAt(resDate, slot);
+    if (peopleStartingAtSlot + people > MAX_PEOPLE_PER_SLOT) continue;
+    const table = await tableDAO.findAvailableTable({
+      resDate,
+      resTime: slot,
+      durationMin,
+      people,
+      table_type_req,
+      seating_type_req,
+    });
+    if (table) return slot;
+  }
+  return null;
+};
+
+function formatTimeForMessage(timeStr) {
+  const [h, m] = timeStr.split(':').map(Number);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const hour = h > 12 ? h - 12 : h === 0 ? 12 : h;
+  return `${hour}:${m.toString().padStart(2, '0')} ${ampm}`;
+}
 
 // Check what alternatives are available
 const checkAlternatives = async (tableDAO, params) => {
@@ -285,7 +362,30 @@ const registerReservation = async (reservationDAO, payload, tableDAO) => {
   payload.durationMin = durationMin;
   const seatingType = payload.seating_type_req || "chairs";
 
-  // 1️⃣ CHECK AVAILABILITY FIRST - Don't create reservation if no table available
+  // 0️⃣ CAP: max 12 people per 30-min start slot (per half hour)
+  const peopleAtThisStart = await reservationDAO.countPeopleStartingAt(
+    payload.resDate,
+    payload.resTime
+  );
+  // Ensure numeric comparison (payload.people can be string from JSON/form)
+  const requestedPeople = Number(payload.people);
+  if (peopleAtThisStart + requestedPeople > MAX_PEOPLE_PER_SLOT) {
+    // Suggest next slot that has capacity (≤12 per half-hour), not the next slot with a free table
+    const nextSlot = await findNextSlotWithCapacityOnly(reservationDAO, {
+      resDate: payload.resDate,
+      resTime: payload.resTime,
+      people: payload.people,
+    });
+    const nextStr = nextSlot
+      ? formatTimeForMessage(nextSlot)
+      : "none for this date";
+    throw {
+      status: 400,
+      message: `Not possible to make a reservation at this time. Maximum 12 people per half hour. Next available time is ${nextStr}.`,
+    };
+  }
+
+  // 1️⃣ CHECK AVAILABILITY - Don't create reservation if no table available
   const tableResult = await tableDAO.findAvailableTable({
     resDate: payload.resDate,
     resTime: payload.resTime,
@@ -317,73 +417,28 @@ const registerReservation = async (reservationDAO, payload, tableDAO) => {
     };
   }
 
-  // 2️⃣ Table is available - Create reservation
-  let assignedTables = [];
-  
-  // Check if this is a split booking across multiple tables
-  if (tableResult.isSplitBooking && tableResult.allocations) {
-    // Create separate reservations for each table allocation
-    for (const allocation of tableResult.allocations) {
-      const splitPayload = {
-        ...payload,
-        people: allocation.seatsToBook,
-        durationMin: durationMin,
-      };
-      
-      const splitReservation = await reservationDAO.createReservation(splitPayload);
-      await reservationDAO.setReservationTable(splitReservation.id, allocation.table.id);
-      
-      assignedTables.push({
-        table: allocation.table,
-        seats: allocation.seatsToBook,
-      });
+  // 2️⃣ Table is available - Create reservation (single table only)
+  let reservation = await reservationDAO.createReservation(payload);
+  await reservationDAO.setReservationTable(reservation.id, tableResult.id);
+  reservation = await reservationDAO.findReservationById(reservation.id);
+
+  const latestSettings = readSettings();
+  const confirmDuration = tableType === "raclette"
+    ? (latestSettings.reservationDurationRacletteMin ?? 120)
+    : (latestSettings.reservationDurationStandardMin ?? 60);
+
+  return {
+    reservation,
+    confirmation: {
+      resDate: payload.resDate,
+      resTime: payload.resTime,
+      durationMin: Number(confirmDuration),
+      people: payload.people,
+      tableType: String(tableType).toLowerCase(),
+      seatingType: tableResult.seating_type || seatingType,
+      tableName: tableResult.name,
     }
-    
-    // Return combined confirmation (re-read settings for duration)
-    const latestSettings = readSettings();
-    const confirmDuration = tableType === "raclette"
-      ? (latestSettings.reservationDurationRacletteMin ?? 120)
-      : (latestSettings.reservationDurationStandardMin ?? 60);
-    const tableNames = assignedTables.map(t => t.table.name).join(' + ');
-    return {
-      reservation: null,
-      confirmation: {
-        resDate: payload.resDate,
-        resTime: payload.resTime,
-        durationMin: Number(confirmDuration),
-        people: payload.people,
-        tableType: (tableType === 'raclette' ? 'raclette' : 'standard'),
-        seatingType: tableResult.seating_type || 'floor',
-        tableName: tableNames,
-        isSplitBooking: true,
-      }
-    };
-  } else {
-    // Single table booking
-    let reservation = await reservationDAO.createReservation(payload);
-    
-    await reservationDAO.setReservationTable(reservation.id, tableResult.id);
-    reservation = await reservationDAO.findReservationById(reservation.id);
-
-    // Re-read settings so confirmation duration always matches current admin settings
-    const latestSettings = readSettings();
-    const confirmDuration = tableType === "raclette"
-      ? (latestSettings.reservationDurationRacletteMin ?? 120)
-      : (latestSettings.reservationDurationStandardMin ?? 60);
-
-    return {
-      reservation,
-      confirmation: {
-        resDate: payload.resDate,
-        resTime: payload.resTime,
-        durationMin: Number(confirmDuration),
-        people: payload.people,
-        tableType: String(tableType).toLowerCase(),
-        seatingType: tableResult.seating_type || seatingType,
-        tableName: tableResult.name,
-      }
-    };
-  }
+  };
 };
 
 /* =========================
