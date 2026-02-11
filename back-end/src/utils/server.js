@@ -7,6 +7,8 @@ const tableRouter = require("../routes/table.router");
 const reservationRouter = require("../routes/reservation.router");
 const settingsRouter = require("../routes/settings.router");
 const adminRouter = require("../routes/admin.router");
+const deliveryRouter = require("../routes/delivery.router");
+const guesthouseRouter = require("../routes/guesthouse.router");
 const createServer = () => {
   const app = express();
 
@@ -17,6 +19,8 @@ const createServer = () => {
   app.use("/api/v1/tables", tableRouter);
   app.use("/api/v1/reservations", reservationRouter);
   app.use("/api/v1/settings", settingsRouter);
+  app.use("/api/v1/deliveries", deliveryRouter);
+  app.use("/api/v1/guesthouses", guesthouseRouter);
   app.use("/api/v1/admin", adminRouter);
   app.use(notFound);
   app.use(errorHandler);

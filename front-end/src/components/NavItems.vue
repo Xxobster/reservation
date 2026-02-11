@@ -6,13 +6,13 @@ import NavItem from "@/components/NavItem.vue";
 import FoodIcon from "~icons/fluent/food-16-filled";
 import CardListIcon from "~icons/bi/card-list";
 import SearchIcon from "~icons/ant-design/search-outlined";
-import PlusIcon from "~icons/akar-icons/plus";
 import LogoutIcon from "~icons/mdi/logout";
 import LoginIcon from "~icons/mdi/login";
 import DeliveryIcon from "~icons/mdi/truck-delivery";
 import HandshakeIcon from "~icons/mdi/handshake";
 import MenuBookIcon from "~icons/mdi/book-open-variant";
 import SettingsIcon from "~icons/mdi/cog";
+import ReceiptIcon from "~icons/mdi/receipt-text";
 
 const props = defineProps({
   /** When provided by App.vue, navbar updates immediately on PIN success without refresh */
@@ -93,9 +93,9 @@ onUnmounted(() => {
         <SearchIcon />
       </template>
     </NavItem>
-    <NavItem v-if="isAdmin" route-name="add-table" text="Add Table">
+    <NavItem v-if="isAdmin" route-name="guesthouse-deliveries" text="Guesthouse bills">
       <template #icon>
-        <PlusIcon />
+        <ReceiptIcon />
       </template>
     </NavItem>
     <NavItem v-if="isAdmin" route-name="admin-settings" text="Settings">

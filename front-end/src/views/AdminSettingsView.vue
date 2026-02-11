@@ -2,6 +2,7 @@
 import { ref, onMounted } from "vue";
 import ButtonFilled from "@/components/ButtonFilled.vue";
 import { getSettings, updateSettings, restartBackend } from "@/services/settingsAPI";
+import { getGuesthouseList, updateGuesthouseList } from "@/services/guesthouseAPI";
 
 const loading = ref(true);
 const saving = ref(false);
@@ -10,6 +11,10 @@ const error = ref(null);
 
 const restarting = ref(false);
 const restartMessage = ref(null);
+
+const guesthouseListText = ref("");
+const savingGuesthouses = ref(false);
+const guesthouseListMessage = ref(null);
 
 const doRestartBackend = async () => {
   restarting.value = true;
@@ -40,6 +45,8 @@ const form = ref({
   pickupEndTime: "21:00",
   reservationDurationRacletteMin: 120,
   reservationDurationStandardMin: 60,
+  deliveryFeeGuesthouseLAK: 30000,
+  deliveryFeeDeliveryPersonLAK: 20000,
 });
 
 const load = async () => {
@@ -61,11 +68,20 @@ const load = async () => {
       pickupEndTime: d.pickupEndTime ?? "21:00",
       reservationDurationRacletteMin: d.reservationDurationRacletteMin ?? 120,
       reservationDurationStandardMin: d.reservationDurationStandardMin ?? 60,
+      deliveryFeeGuesthouseLAK: d.deliveryFeeGuesthouseLAK ?? 30000,
+      deliveryFeeDeliveryPersonLAK: d.deliveryFeeDeliveryPersonLAK ?? 20000,
     };
   } catch (e) {
     error.value = e.response?.data?.message || "Failed to load settings.";
   } finally {
     loading.value = false;
+  }
+  try {
+    const ghRes = await getGuesthouseList();
+    const list = ghRes.data?.list;
+    guesthouseListText.value = Array.isArray(list) ? list.join("\n") : "";
+  } catch (_) {
+    guesthouseListText.value = "";
   }
 };
 
@@ -80,6 +96,28 @@ const save = async () => {
     error.value = e.response?.data?.message || "Failed to save settings.";
   } finally {
     saving.value = false;
+  }
+};
+
+const saveGuesthouseList = async () => {
+  savingGuesthouses.value = true;
+  guesthouseListMessage.value = null;
+  try {
+    const lines = guesthouseListText.value
+      .split(/\n/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const list = [...new Set(lines)].sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" }));
+    await updateGuesthouseList(list);
+    guesthouseListText.value = list.join("\n");
+    guesthouseListMessage.value = { type: "success", text: "Guesthouse list saved (sorted A–Z)." };
+  } catch (e) {
+    guesthouseListMessage.value = {
+      type: "error",
+      text: e.response?.data?.message || "Failed to save guesthouse list.",
+    };
+  } finally {
+    savingGuesthouses.value = false;
   }
 };
 
@@ -161,6 +199,36 @@ onMounted(load);
             </div>
           </div>
           <p class="hint">Outside these hours customers cannot add items to the basket (delivery).</p>
+          <div class="time-row">
+            <div class="field">
+              <label>Delivery fee – Guesthouse (LAK)</label>
+              <input v-model.number="form.deliveryFeeGuesthouseLAK" type="number" min="0" step="1000" class="input input-number" />
+            </div>
+            <div class="field">
+              <label>Delivery fee – Delivery person (LAK)</label>
+              <input v-model.number="form.deliveryFeeDeliveryPersonLAK" type="number" min="0" step="1000" class="input input-number" />
+            </div>
+          </div>
+          <p class="hint">Total delivery fee shown to customer = Guesthouse + Delivery person. Guesthouse fee is used for weekly bills per guesthouse.</p>
+        </section>
+
+        <section class="section">
+          <h2>Guesthouse list (Don Det)</h2>
+          <p class="hint">One name per line. Used for delivery dropdown and guesthouse bills; names must match exactly. Saved list is always sorted A–Z.</p>
+          <textarea
+            v-model="guesthouseListText"
+            class="input guesthouse-textarea"
+            rows="12"
+            placeholder="BABA Guesthouse&#10;Mr B. Guesthouse&#10;..."
+          />
+          <ButtonFilled
+            type="button"
+            class="submit-btn"
+            :text="savingGuesthouses ? 'Saving…' : 'Save guesthouse list'"
+            :disabled="savingGuesthouses"
+            @click="saveGuesthouseList"
+          />
+          <p v-if="guesthouseListMessage" :class="guesthouseListMessage.type === 'success' ? 'success-msg' : 'error-msg'">{{ guesthouseListMessage.text }}</p>
         </section>
 
         <section class="section">
@@ -243,6 +311,7 @@ onMounted(load);
 }
 .input:focus { outline: none; border-color: #ffc300; }
 .input-number { max-width: 100px; }
+.guesthouse-textarea { min-width: 100%; max-width: 480px; min-height: 200px; resize: vertical; }
 .time-row { display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; }
 .toggle-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
 .toggle-label { font-size: 1rem; color: #eee; }

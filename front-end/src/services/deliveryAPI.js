@@ -1,0 +1,10 @@
+import API from "./API";
+
+export const createDelivery = (data) => API().post("/deliveries", data);
+
+export const getDeliveriesByGuesthouse = (params) =>
+  API().get("/deliveries/by-guesthouse", { params });
+
+export const deleteDelivery = (id) => API().delete(`/deliveries/${id}`);
+
+export const markDeliveryPaid = (id) => API().patch(`/deliveries/${id}`, { isPaid: true });

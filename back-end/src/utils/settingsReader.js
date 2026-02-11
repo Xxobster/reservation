@@ -16,6 +16,8 @@ const DEFAULT_SETTINGS = {
   pickupEndTime: "21:00",
   reservationDurationRacletteMin: 120,
   reservationDurationStandardMin: 60,
+  deliveryFeeGuesthouseLAK: 30000,
+  deliveryFeeDeliveryPersonLAK: 20000,
 };
 
 const readSettings = () => {

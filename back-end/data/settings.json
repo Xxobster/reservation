@@ -1,14 +1,1 @@
-{
-  "whatsappGeneral": "41793917577",
-  "whatsappReservations": "41793917577",
-  "whatsappDelivery": "41793917577",
-  "reservationsEnabled": true,
-  "deliveryEnabled": true,
-  "pickupEnabled": true,
-  "deliveryStartTime": "11:00",
-  "deliveryEndTime": "21:00",
-  "pickupStartTime": "11:00",
-  "pickupEndTime": "21:00",
-  "reservationDurationRacletteMin": 120,
-  "reservationDurationStandardMin": 90
-}
+{"whatsappGeneral":"41793917577","whatsappReservations":"41793917577","whatsappDelivery":"41793917577","reservationsEnabled":true,"deliveryEnabled":true,"pickupEnabled":true,"deliveryStartTime":"11:00","deliveryEndTime":"21:00","pickupStartTime":"11:00","pickupEndTime":"21:00","reservationDurationRacletteMin":120,"reservationDurationStandardMin":90,"deliveryFeeGuesthouseLAK":30000,"deliveryFeeDeliveryPersonLAK":20000}

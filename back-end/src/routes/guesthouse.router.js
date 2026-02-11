@@ -2,17 +2,12 @@ const express = require("express");
 const router = express.Router();
 const tryCatchHandler = require("../middleware/tryCatch");
 const httpMethodError = require("../middleware/httpMethodError");
-const adminController = require("../controllers/admin.controller");
 const guesthouseController = require("../controllers/guesthouse.controller");
 
 router
-  .route("/restart-backend")
-  .post(tryCatchHandler(adminController.restartBackendHandler))
-  .all(httpMethodError);
-
-router
-  .route("/guesthouses/refresh-from-google")
-  .post(tryCatchHandler(guesthouseController.refreshFromGoogleHandler))
+  .route("/")
+  .get(tryCatchHandler(guesthouseController.getListHandler))
+  .patch(tryCatchHandler(guesthouseController.patchListHandler))
   .all(httpMethodError);
 
 module.exports = router;

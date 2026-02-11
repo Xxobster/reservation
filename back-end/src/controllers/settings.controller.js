@@ -45,6 +45,8 @@ const patchHandler = (req, res) => {
     "pickupEndTime",
     "reservationDurationRacletteMin",
     "reservationDurationStandardMin",
+    "deliveryFeeGuesthouseLAK",
+    "deliveryFeeDeliveryPersonLAK",
   ];
   const current = readSettings();
   for (const key of allowed) {
@@ -59,6 +61,9 @@ const patchHandler = (req, res) => {
       } else if (key === "reservationDurationRacletteMin" || key === "reservationDurationStandardMin") {
         const n = parseInt(body[key], 10);
         if (!isNaN(n) && n >= 15 && n <= 480) current[key] = n;
+      } else if (key === "deliveryFeeGuesthouseLAK" || key === "deliveryFeeDeliveryPersonLAK") {
+        const n = parseInt(body[key], 10);
+        if (!isNaN(n) && n >= 0 && n <= 10000000) current[key] = n;
       }
     }
   }
