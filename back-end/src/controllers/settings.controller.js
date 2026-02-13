@@ -45,6 +45,10 @@ const patchHandler = (req, res) => {
     "pickupEndTime",
     "reservationDurationRacletteMin",
     "reservationDurationStandardMin",
+    "notifyEmailAfterTime",
+    "reservationNotifyEmails",
+    "notifyDeliveryEmailAfterTime",
+    "deliveryNotifyEmails",
     "deliveryFeeGuesthouseLAK",
     "deliveryFeeDeliveryPersonLAK",
   ];
@@ -55,9 +59,11 @@ const patchHandler = (req, res) => {
         current[key] = Boolean(body[key]);
       } else if (key.startsWith("whatsapp")) {
         current[key] = String(body[key]).replace(/\D/g, "") || current[key];
-      } else if (key.endsWith("StartTime") || key.endsWith("EndTime")) {
+      } else if (key.endsWith("StartTime") || key.endsWith("EndTime") || key === "notifyEmailAfterTime" || key === "notifyDeliveryEmailAfterTime") {
         const v = String(body[key]).trim();
-        if (/^\d{1,2}:\d{2}$/.test(v)) current[key] = v;
+        if (/^\d{1,2}:\d{2}(:\d{2})?$/.test(v)) current[key] = v.length === 5 ? v : v.substring(0, 5);
+      } else if (key === "reservationNotifyEmails" || key === "deliveryNotifyEmails") {
+        current[key] = String(body[key] ?? "").trim();
       } else if (key === "reservationDurationRacletteMin" || key === "reservationDurationStandardMin") {
         const n = parseInt(body[key], 10);
         if (!isNaN(n) && n >= 15 && n <= 480) current[key] = n;

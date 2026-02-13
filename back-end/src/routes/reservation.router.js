@@ -17,6 +17,11 @@ router
   .all(httpMethodError);
 
 router
+  .route("/:reservationId/send-confirmation-email")
+  .post(tryCatchHandler(reservationController.sendConfirmationEmailHandler))
+  .all(httpMethodError);
+
+router
   .route("/choose-table/:reservationId")
   .post(tryCatchHandler(reservationController.chooseTableHandler))
   .all(httpMethodError);

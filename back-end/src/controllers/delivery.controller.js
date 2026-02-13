@@ -3,6 +3,7 @@ const path = require("path");
 const db = require("../db/models");
 const { Op } = require("sequelize");
 const { readSettings } = require("../utils/settingsReader");
+const { scheduleOrSendDeliveryNotification } = require("../utils/emailSender");
 
 const GUESTHOUSES_PATH = path.resolve(__dirname, "../../data/guesthouses.json");
 
@@ -17,24 +18,38 @@ const getGuesthouseList = () => {
   }
 };
 
+const PICKUP_GUESTHOUSE = "Pick-up at restaurant";
+
 const createHandler = async (req, res) => {
   const body = req.body || {};
   const settings = readSettings();
-  const guesthouse = String(body.guesthouse || "").trim();
-  if (!guesthouse) {
-    return res.status(400).json({ success: false, message: "guesthouse is required" });
+  const isPickup = String(body.orderType || "").toLowerCase() === "pickup";
+  let guesthouse;
+  let roomNumber;
+  let feeGuesthouseLAK;
+
+  if (isPickup) {
+    guesthouse = PICKUP_GUESTHOUSE;
+    roomNumber = null;
+    feeGuesthouseLAK = 0;
+  } else {
+    guesthouse = String(body.guesthouse || "").trim();
+    if (!guesthouse) {
+      return res.status(400).json({ success: false, message: "guesthouse is required" });
+    }
+    const allowedList = getGuesthouseList();
+    if (allowedList.length > 0 && !allowedList.includes(guesthouse)) {
+      return res.status(400).json({
+        success: false,
+        message: "guesthouse must be one of the names in the guesthouse list. Please select from the dropdown.",
+      });
+    }
+    roomNumber = body.roomNumber != null ? String(body.roomNumber).trim() : null;
+    feeGuesthouseLAK =
+      typeof body.feeGuesthouseLAK === "number" && body.feeGuesthouseLAK >= 0
+        ? body.feeGuesthouseLAK
+        : (settings.deliveryFeeGuesthouseLAK != null ? settings.deliveryFeeGuesthouseLAK : 30000);
   }
-  const allowedList = getGuesthouseList();
-  if (allowedList.length > 0 && !allowedList.includes(guesthouse)) {
-    return res.status(400).json({
-      success: false,
-      message: "guesthouse must be one of the names in the guesthouse list. Please select from the dropdown.",
-    });
-  }
-  const feeGuesthouseLAK =
-    typeof body.feeGuesthouseLAK === "number" && body.feeGuesthouseLAK >= 0
-      ? body.feeGuesthouseLAK
-      : (settings.deliveryFeeGuesthouseLAK != null ? settings.deliveryFeeGuesthouseLAK : 30000);
 
   const deliveredAt = body.deliveredAt ? new Date(body.deliveredAt) : new Date();
   if (Number.isNaN(deliveredAt.getTime())) {
@@ -46,14 +61,25 @@ const createHandler = async (req, res) => {
 
   const delivery = await db.delivery.create({
     guesthouse,
-    roomNumber: body.roomNumber != null ? String(body.roomNumber).trim() : null,
+    roomNumber,
     deliveredAt,
     feeGuesthouseLAK,
     lat,
     lng,
     customerName: body.customerName != null ? String(body.customerName).trim() : null,
-    customerPhone: body.customerPhone != null ? String(body.customerPhone).trim() : null,
+    customerPhone: body.customerPhone != null ? String(body.customerPhone).replace(/[\s.\-()]/g, "").trim() : null,
     notes: body.notes != null ? String(body.notes).trim() : null,
+  });
+
+  scheduleOrSendDeliveryNotification({
+    isPickup,
+    guesthouse,
+    roomNumber: delivery.roomNumber,
+    customerName: delivery.customerName,
+    customerPhone: delivery.customerPhone,
+    notes: delivery.notes,
+    deliveredAt: delivery.deliveredAt,
+    feeGuesthouseLAK: delivery.feeGuesthouseLAK,
   });
 
   return res.status(201).json({

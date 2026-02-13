@@ -4,6 +4,7 @@ import ButtonFilled from "@/components/ButtonFilled.vue";
 import { getSettings } from "@/services/settingsAPI";
 import { createDelivery } from "@/services/deliveryAPI";
 import { getGuesthouseList } from "@/services/guesthouseAPI";
+import normalizePhone from "@/utils/normalizePhone";
 
 const showPaymentsFullscreen = ref(false);
 
@@ -345,16 +346,16 @@ const recordDeliveryAndOpenWhatsApp = async () => {
     }
   }
   const url = getWhatsAppOrderUrl();
-  if (orderType.value === "delivery") {
-    const loc = customerLocation.value || (() => {
-      try {
-        const s = sessionStorage.getItem("deliveryLocation");
-        return s ? JSON.parse(s) : null;
-      } catch (_) {
-        return null;
-      }
-    })();
-    try {
+  try {
+    if (orderType.value === "delivery") {
+      const loc = customerLocation.value || (() => {
+        try {
+          const s = sessionStorage.getItem("deliveryLocation");
+          return s ? JSON.parse(s) : null;
+        } catch (_) {
+          return null;
+        }
+      })();
       await createDelivery({
         guesthouse: customerInfo.value.guesthouse,
         roomNumber: customerInfo.value.roomNumber || null,
@@ -362,12 +363,19 @@ const recordDeliveryAndOpenWhatsApp = async () => {
         lat: loc && typeof loc.lat === "number" ? loc.lat : null,
         lng: loc && typeof loc.lng === "number" ? loc.lng : null,
         customerName: customerInfo.value.name || null,
-        customerPhone: customerInfo.value.phone || null,
+        customerPhone: customerInfo.value.phone ? normalizePhone(customerInfo.value.phone) : null,
         notes: customerInfo.value.notes || null,
       });
-    } catch (_) {
-      // still open WhatsApp if recording fails
+    } else {
+      await createDelivery({
+        orderType: "pickup",
+        customerName: customerInfo.value.name || null,
+        customerPhone: customerInfo.value.phone ? normalizePhone(customerInfo.value.phone) : null,
+        notes: [customerInfo.value.pickupTime ? "Pick-up time: " + customerInfo.value.pickupTime : "", customerInfo.value.notes].filter(Boolean).join("\n") || null,
+      });
     }
+  } catch (_) {
+    // still open WhatsApp if recording fails
   }
   window.open(url, "_blank");
 };

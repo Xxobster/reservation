@@ -45,6 +45,10 @@ const form = ref({
   pickupEndTime: "21:00",
   reservationDurationRacletteMin: 120,
   reservationDurationStandardMin: 60,
+  notifyEmailAfterTime: "11:00",
+  reservationNotifyEmails: "",
+  notifyDeliveryEmailAfterTime: "11:00",
+  deliveryNotifyEmails: "",
   deliveryFeeGuesthouseLAK: 30000,
   deliveryFeeDeliveryPersonLAK: 20000,
 });
@@ -68,6 +72,10 @@ const load = async () => {
       pickupEndTime: d.pickupEndTime ?? "21:00",
       reservationDurationRacletteMin: d.reservationDurationRacletteMin ?? 120,
       reservationDurationStandardMin: d.reservationDurationStandardMin ?? 60,
+      notifyEmailAfterTime: d.notifyEmailAfterTime ?? "11:00",
+      reservationNotifyEmails: d.reservationNotifyEmails ?? "",
+      notifyDeliveryEmailAfterTime: d.notifyDeliveryEmailAfterTime ?? "11:00",
+      deliveryNotifyEmails: d.deliveryNotifyEmails ?? "",
       deliveryFeeGuesthouseLAK: d.deliveryFeeGuesthouseLAK ?? 30000,
       deliveryFeeDeliveryPersonLAK: d.deliveryFeeDeliveryPersonLAK ?? 20000,
     };
@@ -176,6 +184,21 @@ onMounted(load);
             </label>
           </div>
           <p class="hint">When OFF, the reservation page shows: &quot;No Reservation possible at the moment&quot;</p>
+          <div class="field">
+            <label>Email(s) for reservation notifications</label>
+            <textarea
+              v-model="form.reservationNotifyEmails"
+              class="input email-textarea"
+              rows="3"
+              placeholder="email1@example.com, email2@example.com"
+            />
+          </div>
+          <p class="hint">Addresses that receive an email when a new reservation is made. Separate with commas, spaces, or new lines.</p>
+          <div class="field">
+            <label>Send reservation notification emails after (time)</label>
+            <input v-model="form.notifyEmailAfterTime" type="time" class="input" />
+          </div>
+          <p class="hint">Reservations made before this time (server local) receive their notification email at this time instead of immediately. e.g. 11:00 = emails sent at 11am.</p>
         </section>
 
         <section class="section">
@@ -188,6 +211,21 @@ onMounted(load);
             </label>
           </div>
           <p class="hint">When OFF, delivery tab shows &quot;No Delivery possible at the moment&quot; and basket is disabled.</p>
+          <div class="field">
+            <label>Email(s) for delivery notifications</label>
+            <textarea
+              v-model="form.deliveryNotifyEmails"
+              class="input email-textarea"
+              rows="3"
+              placeholder="email1@example.com, email2@example.com"
+            />
+          </div>
+          <p class="hint">Addresses that receive an email when a new delivery is recorded. Separate with commas, spaces, or new lines.</p>
+          <div class="field">
+            <label>Send delivery notification emails after (time)</label>
+            <input v-model="form.notifyDeliveryEmailAfterTime" type="time" class="input" />
+          </div>
+          <p class="hint">Deliveries recorded before this time (server local) receive their notification email at this time instead of immediately. e.g. 11:00 = emails sent at 11am.</p>
           <div class="time-row">
             <div class="field">
               <label>Delivery working hours – Start</label>
@@ -311,6 +349,7 @@ onMounted(load);
 }
 .input:focus { outline: none; border-color: #ffc300; }
 .input-number { max-width: 100px; }
+.email-textarea { min-width: 100%; max-width: 400px; resize: vertical; }
 .guesthouse-textarea { min-width: 100%; max-width: 480px; min-height: 200px; resize: vertical; }
 .time-row { display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; }
 .toggle-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }

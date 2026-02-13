@@ -32,6 +32,14 @@ const findReservationById = async (reservationId) => {
   return reservation;
 };
 
+const findReservationWithCustomer = async (reservationId) => {
+  const reservation = await Reservation.findOne({
+    where: { id: reservationId },
+    include: [{ model: Customer, attributes: ["firstName", "lastName", "email", "phone"] }],
+  });
+  return reservation;
+};
+
 // Check if a customer with the same name and phone already has a reservation on the same day
 const findExistingReservationByCustomer = async (firstName, lastName, phone, resDate) => {
   const { QueryTypes } = db.sequelize;
@@ -218,6 +226,7 @@ module.exports = {
   updateReservation,
   deleteReservation,
   findReservationById,
+  findReservationWithCustomer,
   findExistingReservationByCustomer,
   countOverlappingPeople,
   countPeopleStartingAt,

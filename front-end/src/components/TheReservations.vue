@@ -56,8 +56,10 @@ const getCurrentTimeSlot = () => {
 const currTime = ref(getCurrentTimeSlot());
 const currTimeIndex = computed(() => timeSlots.indexOf(currTime.value));
 
+// All tables for Choose Table dropdown – same list as table cards (no filter), so Table 8 and every table appear. Backend validates capacity on submit.
 const freeTables = computed(() => {
-  return tables.value ? tables.value.filter((table) => !table.isOccupied) : [];
+  const list = tables.value || [];
+  return list.slice().sort((a, b) => (a.name || "").localeCompare(b.name || "", "en", { sensitivity: "base" }));
 });
 
 const filterReservations = computed(() => {

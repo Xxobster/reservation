@@ -138,8 +138,8 @@ const hasOccupiedSeats = computed(() => {
 }
 
 .occupiedColor {
-  background-color: #1a1a1a;
-  border: 1px solid #333;
+  background-color: #ffc300;
+  border: 1px solid rgba(255, 195, 0, 0.5);
 }
 
 /* =========================

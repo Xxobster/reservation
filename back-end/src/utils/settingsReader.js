@@ -16,6 +16,10 @@ const DEFAULT_SETTINGS = {
   pickupEndTime: "21:00",
   reservationDurationRacletteMin: 120,
   reservationDurationStandardMin: 60,
+  notifyEmailAfterTime: "11:00",
+  reservationNotifyEmails: "PetuniaSch59@gmail.com, sylvain.atw@gmail.com",
+  notifyDeliveryEmailAfterTime: "11:00",
+  deliveryNotifyEmails: "PetuniaSch59@gmail.com, sylvain.atw@gmail.com",
   deliveryFeeGuesthouseLAK: 30000,
   deliveryFeeDeliveryPersonLAK: 20000,
 };

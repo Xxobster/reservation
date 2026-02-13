@@ -1,6 +1,41 @@
 const dateTimeValidator = require("../utils/dateAndTimeValidator");
 const { readSettings } = require("../utils/settingsReader");
 const { sendReservationNotification } = require("../utils/emailSender");
+const logger = require("../utils/logger");
+
+/**
+ * Returns milliseconds until notifyTimeStr today (server local), or null if already past (send now).
+ * notifyTimeStr: "HH:MM" or "HH:MM:SS" (from settings or env NOTIFY_EMAIL_AFTER_TIME).
+ */
+function getMsUntilNotifyTime(notifyTimeStr) {
+  const raw = (notifyTimeStr || process.env.NOTIFY_EMAIL_AFTER_TIME || "11:00").trim();
+  const parts = raw.split(/[:\s]+/).map((x) => parseInt(x, 10) || 0);
+  const h = parts[0] ?? 11;
+  const m = parts[1] ?? 0;
+  const s = parts[2] ?? 0;
+  const now = new Date();
+  const notifyToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, s, 0);
+  if (now >= notifyToday) return null;
+  return notifyToday - now;
+}
+
+/**
+ * Send reservation notification now or schedule for notifyEmailAfterTime if before that time.
+ * One email per reservation; multiple reservations produce multiple (scheduled) emails.
+ */
+function scheduleOrSendReservationNotification(details) {
+  const { readSettings } = require("../utils/settingsReader");
+  const notifyTime = (readSettings().notifyEmailAfterTime || "11:00").trim();
+  const ms = getMsUntilNotifyTime(notifyTime);
+  if (ms != null && ms > 0) {
+    logger.info(`Reservation notification scheduled for ${notifyTime} (in ${Math.round(ms / 1000 / 60)} min)`);
+    setTimeout(() => {
+      sendReservationNotification(details).catch(() => {});
+    }, ms);
+  } else {
+    sendReservationNotification(details).catch(() => {});
+  }
+}
 
 /* =========================
    READ
@@ -77,6 +112,11 @@ const checkTimeInterval = (resTime) => {
       message: "Reservations can only be made at 30-minute intervals (e.g., 11:00, 11:30, 12:00)",
     };
   }
+};
+
+const normalizePhone = (phone) => {
+  if (phone == null || typeof phone !== "string") return phone;
+  return phone.replace(/[\s.\-()]/g, "");
 };
 
 const isFieldEmpty = (payload) => {
@@ -333,6 +373,7 @@ const buildUnavailableMessage = (alternatives, tableType, seatingType) => {
 ========================= */
 
 const registerReservation = async (reservationDAO, payload, tableDAO) => {
+  if (payload.phone != null) payload.phone = normalizePhone(payload.phone);
   isFieldEmpty(payload);
   checkPartySize(payload.people);
   checkTimeInterval(payload.resTime);
@@ -442,7 +483,7 @@ const registerReservation = async (reservationDAO, payload, tableDAO) => {
     tableName: tableResult.name,
   };
 
-  sendReservationNotification({
+  scheduleOrSendReservationNotification({
     firstName: payload.firstName,
     lastName: payload.lastName,
     email: payload.email,
@@ -454,7 +495,7 @@ const registerReservation = async (reservationDAO, payload, tableDAO) => {
     seatingType: confirmation.seatingType,
     tableName: tableDisplayName,
     durationMin: confirmation.durationMin,
-  }).catch(() => {});
+  });
 
   return {
     reservation,
@@ -466,6 +507,16 @@ const registerReservation = async (reservationDAO, payload, tableDAO) => {
    EDIT
 ========================= */
 
+const checkDurationMin = (durationMin) => {
+  const d = Number(durationMin);
+  if (!Number.isInteger(d) || d < 15 || d > 480) {
+    throw {
+      status: 400,
+      message: "Duration must be between 15 and 480 minutes.",
+    };
+  }
+};
+
 const editReservation = async (reservationId, reservationDAO, payload) => {
   const reservation = await reservationDAO.findReservationById(reservationId);
   if (!reservation)
@@ -476,6 +527,13 @@ const editReservation = async (reservationId, reservationDAO, payload) => {
 
   validateTime(new Date(), payload.resDate, payload.resTime);
   checkClosingOpeningTime(payload.resTime);
+  if (payload.durationMin != null) checkDurationMin(payload.durationMin);
+  if (payload.people != null) {
+    const p = Number(payload.people);
+    if (!Number.isInteger(p) || p < 1 || p > 20) {
+      throw { status: 400, message: "Number of people must be between 1 and 20." };
+    }
+  }
 
   return await reservationDAO.updateReservation(reservationId, payload);
 };

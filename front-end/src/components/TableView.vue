@@ -1,4 +1,5 @@
 <script setup>
+import { ref } from "vue";
 import ButtonAction from "@/components/ButtonAction.vue";
 import CrossIcon from "~icons/radix-icons/cross-circled";
 import NotFoundResource from "@/components/NotFoundResource.vue";
@@ -14,6 +15,22 @@ const emit = defineEmits([
   "onSelectedReservation",
   "onCanceledReservation",
 ]);
+
+const sendingEmailId = ref(null);
+const emailError = ref(null);
+
+const sendConfirmationEmail = async (item) => {
+  if (!item?.email) return;
+  sendingEmailId.value = item.id;
+  emailError.value = null;
+  try {
+    await reservationAPI.sendConfirmationEmail(item.id);
+  } catch (err) {
+    emailError.value = err.response?.data?.message || "Failed to send email.";
+  } finally {
+    sendingEmailId.value = null;
+  }
+};
 
 const passItemData = (item) => {
   emit("onSelectedReservation", item);
@@ -87,18 +104,26 @@ const getWhatsAppUrl = (item) => {
   // Build the message
   const firstName = item.firstName || 'Guest';
   const resDate = item.resDate || '';
-  const tableTypeRaw = (item.tableType || item.table_type_req || '').toLowerCase();
+  const tableTypeRaw = String(item.tableType ?? item.table_type_req ?? '').trim().toLowerCase();
   const seatingTypeRaw = item.seatingType || item.seating_type_req || '';
   const timeRange = getTimeRange(item.resTime, tableTypeRaw, item.durationMin);
   const tableAndSeating = formatTableAndSeating(tableTypeRaw, seatingTypeRaw);
-  
+  // Raclette: from type field or from table name (e.g. "Table 5 - Raclette Shared (2)")
+  const isRaclette = tableTypeRaw.includes('raclette') || String(item.tableNumber ?? '').toLowerCase().includes('raclette');
+
+  const paymentBlock = `We do not accept credit or debit cards. Cash withdrawals are available at Dalom (port), Adam's Bar, Datta Banana Leaf, and other nearby locations, with varying fees.
+
+We also accept Revolut and Wise (5% surcharge), as well as Ezy Kip, Moreta Pay, and Loca Pay (app activation takes up to 24 hours). Payment details are available here: http://smbistro.duckdns.org/img/payments.png`;
+
+  const racletteBlock = isRaclette
+    ? 'Kindly be aware that our raclette tables are community tables and may therefore be shared with other guests.\n\n'
+    : '';
+
   const message = `Dear ${firstName},
 
 Thank you for your reservation at S&M Bistro on ${resDate}, from ${timeRange.start} to ${timeRange.end}, ${tableAndSeating}.
 
-Please note that we do not accept credit or debit cards. Cash withdrawals are available at Dalom (port), Adam's Bar, Datta Banana Leaf, and other nearby locations, with varying fees.
-
-We also accept Revolut and Wise (5% surcharge), as well as Ezy Kip, Moreta Pay, and Loca Pay (app activation takes up to 24 hours). Payment details are available here: http://smbistro.duckdns.org/img/payments.png
+${racletteBlock}${paymentBlock}
 
 We look forward to welcoming you.
 
@@ -147,6 +172,17 @@ const cancelReservation = async (item) => {
                   <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
                 </svg>
               </a>
+              <button
+                v-if="item.email"
+                type="button"
+                class="email-btn"
+                title="Send confirmation email (same as WhatsApp message)"
+                :disabled="sendingEmailId === item.id"
+                @click="sendConfirmationEmail(item)"
+              >
+                <svg v-if="sendingEmailId !== item.id" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                <span v-else class="email-btn-sending">…</span>
+              </button>
             </span>
             <span v-else-if="key === 'resTime'">{{ formatTimeRange(item) }}</span>
             <span v-else>{{ item[key] ?? "—" }}</span>
@@ -160,6 +196,15 @@ const cancelReservation = async (item) => {
                 {{ toUpperCase(item.resStatus) }}
               </span>
               <div class="actions">
+                <ButtonAction
+                  v-if="item.resStatus !== 'missed'"
+                  text="Edit"
+                  color="#3b82f6"
+                  @click="
+                    openPopup('Edit Reservation');
+                    passItemData(item);
+                  "
+                />
                 <ButtonAction
                   v-if="item.resStatus === 'pending'"
                   text="Seat"
@@ -307,6 +352,40 @@ thead {
 
 .whatsapp-btn svg {
   fill: white;
+}
+
+.email-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 50%;
+  border: none;
+  background: #444;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 26px;
+  height: 26px;
+}
+
+.email-btn:hover:not(:disabled) {
+  background: #ffc300;
+  color: #000;
+  transform: scale(1.1);
+}
+
+.email-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.email-btn svg {
+  display: block;
+}
+
+.email-btn-sending {
+  font-size: 14px;
 }
 
 .actions-row {

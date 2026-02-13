@@ -37,7 +37,11 @@ const value = computed({
       <option value="" disabled selected hidden>
         {{ props.placeholderText }}
       </option>
-      <option v-for="item in props.collection" :key="item.id" :value="item?.id">
+      <option
+        v-for="item in props.collection"
+        :key="item.id"
+        :value="item.id != null ? Number(item.id) : ''"
+      >
         {{ item?.name }}
       </option>
     </select>

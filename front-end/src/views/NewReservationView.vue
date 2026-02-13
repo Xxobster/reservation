@@ -5,6 +5,7 @@ import ErrorMessage from "@/components/ErrorMessage.vue";
 import SaveIcon from "~icons/fluent/save-16-regular";
 import reservationAPI from "@/services/reservationAPI";
 import { getSettings } from "@/services/settingsAPI";
+import normalizePhone from "@/utils/normalizePhone";
 import { ref, computed, onMounted } from "vue";
 
 const reservation = ref({
@@ -91,7 +92,8 @@ const registerReservation = async () => {
 
   isSubmitting.value = true;
   try {
-    const response = await reservationAPI.registerReservation(reservation.value);
+    const payload = { ...reservation.value, phone: normalizePhone(reservation.value.phone) };
+    const response = await reservationAPI.registerReservation(payload);
     isSuccessful.value = true;
 
     const confirmation = response.data.confirmation;

@@ -13,6 +13,9 @@ class ReservationAPI {
   cancelReservation(id) {
     return API().delete("/reservations/" + id);
   }
+  sendConfirmationEmail(reservationId) {
+    return API().post("/reservations/" + reservationId + "/send-confirmation-email");
+  }
   chooseTable(id, tableId) {
     return API().post("/reservations/choose-table/" + id, tableId);
   }
