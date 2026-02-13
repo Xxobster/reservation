@@ -97,6 +97,11 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: "chairs",
       },
+      menu_req: {
+        type: DataTypes.STRING(20),
+        allowNull: false,
+        defaultValue: "fondue",
+      },
     },
     {
      sequelize,

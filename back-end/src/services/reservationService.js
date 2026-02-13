@@ -41,6 +41,17 @@ function scheduleOrSendReservationNotification(details) {
    READ
 ========================= */
 
+/** Display label for menu_req (for reservations list). Empty/unknown → "?". Old records: derive from table_type_req. */
+function menuLabel(menuReq, tableTypeReq) {
+  const m = (menuReq || "").trim().toLowerCase();
+  if (m === "" || m === "?") return "?";
+  if (m === "raclette_fondue") return "Raclette+Fondue";
+  if (m === "raclette") return "Raclette";
+  if (m === "fondue") return "Fondue";
+  const t = (tableTypeReq || "").trim().toLowerCase();
+  return t === "raclette" ? "Raclette" : "Fondue";
+}
+
 const getAllReservations = async (reservationDAO, tableDAO) => {
   const reservations = await reservationDAO.findAllReservations();
 
@@ -66,6 +77,7 @@ const getAllReservations = async (reservationDAO, tableDAO) => {
       reservation.tableType = "—";
       reservation.seatingType = "—";
     }
+    reservation.menu = menuLabel(reservation.menu_req, reservation.table_type_req);
   }
 
   return reservations;

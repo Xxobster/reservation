@@ -16,9 +16,12 @@ const reservation = ref({
   resDate: "",
   resTime: "",
   people: "",
-  table_type_req: "standard", // standard | raclette
-  seating_type_req: "chairs", // chairs | floor
+  seating_type_req: "chairs", // chairs | floor (used when table type is standard)
 });
+
+// Raclette / Fondue checkboxes replace the Table Type dropdown; backend still receives table_type_req and seating_type_req
+const racletteChecked = ref(false);
+const fondueChecked = ref(false); // nothing pre-checked
 
 const validationErrors = ref(null);
 const isSuccessful = ref(false);
@@ -92,7 +95,24 @@ const registerReservation = async () => {
 
   isSubmitting.value = true;
   try {
-    const payload = { ...reservation.value, phone: normalizePhone(reservation.value.phone) };
+    // Derive table_type_req, seating_type_req and menu_req from checkboxes (same logic as former dropdown)
+    const table_type_req = racletteChecked.value ? "raclette" : "standard";
+    const seating_type_req = racletteChecked.value ? "chairs" : reservation.value.seating_type_req;
+    const menu_req =
+      racletteChecked.value && fondueChecked.value
+        ? "raclette_fondue"
+        : racletteChecked.value
+          ? "raclette"
+          : fondueChecked.value
+            ? "fondue"
+            : ""; // both unchecked → unknown, display as "?"
+    const payload = {
+      ...reservation.value,
+      phone: normalizePhone(reservation.value.phone),
+      table_type_req,
+      seating_type_req,
+      menu_req,
+    };
     const response = await reservationAPI.registerReservation(payload);
     isSuccessful.value = true;
 
@@ -266,17 +286,20 @@ const resetForm = () => {
           v-model:input="reservation.people"
         />
 
-        <!-- Table Type -->
-        <div class="select-group">
-          <label>Table Type</label>
-          <select v-model="reservation.table_type_req">
-            <option value="standard">Standard</option>
-            <option value="raclette">Raclette</option>
-          </select>
+        <!-- Raclette / Fondue (replaces Table Type dropdown) -->
+        <div class="checkbox-group">
+          <label class="checkbox-label">
+            <input type="checkbox" v-model="racletteChecked" />
+            <span>Raclette</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" v-model="fondueChecked" />
+            <span>Fondue <span class="fondue-note">(Served in 450g portions, ideal for 2 people.)</span></span>
+          </label>
         </div>
 
-        <!-- Seating Type - Only shown for standard tables -->
-        <div class="select-group" v-if="reservation.table_type_req === 'standard'">
+        <!-- Seating Type - Only shown when not Raclette (i.e. Standard / Fondue) -->
+        <div class="select-group" v-if="!racletteChecked">
           <label>Seating Type</label>
           <select v-model="reservation.seating_type_req">
             <option value="chairs">Chairs</option>
@@ -490,6 +513,36 @@ const resetForm = () => {
 .large-group-notice .whatsapp-btn-notice svg {
   width: 26px;
   height: 26px;
+}
+
+.checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-top: 15px;
+}
+
+.checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+  font-weight: 600;
+  font-family: "Montserrat-Medium";
+  cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: #ffc300;
+  cursor: pointer;
+}
+
+.fondue-note {
+  font-weight: 400;
+  font-size: 0.9em;
+  color: #aaa;
 }
 
 .select-group {

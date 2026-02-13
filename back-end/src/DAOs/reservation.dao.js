@@ -7,7 +7,7 @@ const { flattenArrayObjects } = require("../utils/flattenObject");
 
 const findAllReservations = async () => {
   const reservations = await Reservation.findAll({
-    attributes: ["id", "resDate", "resTime", "resStatus", "people", "tableId", "table_type_req", "seating_type_req", "durationMin"],
+    attributes: ["id", "resDate", "resTime", "resStatus", "people", "tableId", "table_type_req", "seating_type_req", "menu_req", "durationMin"],
     include: [
       {
         model: Customer,
@@ -94,6 +94,7 @@ const createReservation = async (resDetails) => {
     table_type_req,
     is_private_req,
     seating_type_req,
+    menu_req,
     ...customerDetails
   } = resDetails;
 
@@ -111,6 +112,9 @@ const createReservation = async (resDetails) => {
         table_type_req,
         is_private_req,
         seating_type_req,
+        menu_req: (menu_req !== undefined && menu_req !== null)
+          ? menu_req
+          : (table_type_req === "raclette" ? "raclette" : "fondue"),
       },
       { transaction: t }
     );

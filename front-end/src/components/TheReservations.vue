@@ -27,6 +27,7 @@ const fields = ref({
   tableNumber: "Table",
   tableType: "Type",
   seatingType: "Seating",
+  menu: "Menu",
 });
 
 const reservations = ref(null);
