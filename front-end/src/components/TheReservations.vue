@@ -4,6 +4,7 @@ import ButtonFilled from "@/components/ButtonFilled.vue";
 import PopupBox from "@/components/PopupBox.vue";
 import EditReservation from "@/components/EditReservation.vue";
 import ChooseTable from "@/components/ChooseTable.vue";
+import AddReservationForm from "@/components/AddReservationForm.vue";
 import GridContainer from "@/components/GridContainer.vue";
 import RestaurantTable from "@/components/RestaurantTable.vue";
 
@@ -115,6 +116,12 @@ const refreshTables = async () => {
   }, 2000);
 };
 
+const onManualReservationAdded = async () => {
+  await getReservations();
+  await getTables();
+  isPopupOpen.value = false;
+};
+
 // Date navigation
 const today = () => {
   currDate.value = dateNavigator.setToday();
@@ -194,6 +201,13 @@ onUnmounted(() => {
           :reservation="selectedReservation"
           @on-edited="refreshReservations(true)"
         />
+        <AddReservationForm
+          v-else-if="popupHeaderText === 'Add Reservation'"
+          :tables="freeTables"
+          :default-date="currDate"
+          :default-start-time="currTime"
+          @on-added="onManualReservationAdded"
+        />
         <ChooseTable
           v-else
           :free-tables="freeTables"
@@ -210,7 +224,14 @@ onUnmounted(() => {
     </div>
     <div class="content-wrapper">
       <div class="reservations-wrapper">
-        <h1>Reservations for {{ currDate }}</h1>
+        <div class="reservations-header-row">
+          <h1>Reservations for {{ currDate }}</h1>
+          <ButtonFilled
+            text="Add reservation"
+            class="add-reservation-btn"
+            @click="openPopup({ isOpen: true, headerText: 'Add Reservation' })"
+          />
+        </div>
         <div class="date-navigation">
           <LeftArrowIcon class="vector" @click="prevDay()" />
           <ButtonFilled text="Today" @click="today()" />
@@ -223,6 +244,8 @@ onUnmounted(() => {
             @onOpen="openPopup"
             @onSelectedReservation="assignSelectedReservation"
             @onCanceledReservation="refreshReservations"
+            @onContacted="getReservations"
+            @onArrivalToggled="getReservations"
           />
         </div>
       </div>
@@ -310,6 +333,24 @@ onUnmounted(() => {
   flex: 0 0 auto;
   align-self: stretch;
   min-height: 0;
+}
+
+.reservations-header-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+
+.reservations-header-row h1 {
+  margin: 0;
+}
+
+.add-reservation-btn {
+  flex-shrink: 0;
 }
 
 .table-wrapper {

@@ -20,7 +20,7 @@ module.exports = {
         },
         {
           name: "Table #2",
-          capacity: 5,
+          capacity: 6,
           isOccupied: false,
           reservationId: null,
           createdAt: new Date(),

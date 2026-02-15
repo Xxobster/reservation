@@ -41,15 +41,15 @@ function scheduleOrSendReservationNotification(details) {
    READ
 ========================= */
 
-/** Display label for menu_req (for reservations list). Empty/unknown → "?". Old records: derive from table_type_req. */
+/** Display label for menu_req (for reservations list). Known values → label; empty → "?"; anything else → show as-is (free text). */
 function menuLabel(menuReq, tableTypeReq) {
-  const m = (menuReq || "").trim().toLowerCase();
-  if (m === "" || m === "?") return "?";
+  const raw = (menuReq || "").trim();
+  const m = raw.toLowerCase();
+  if (raw === "" || m === "?") return "?";
   if (m === "raclette_fondue") return "Raclette+Fondue";
   if (m === "raclette") return "Raclette";
   if (m === "fondue") return "Fondue";
-  const t = (tableTypeReq || "").trim().toLowerCase();
-  return t === "raclette" ? "Raclette" : "Fondue";
+  return raw.slice(0, 120);
 }
 
 const getAllReservations = async (reservationDAO, tableDAO) => {
@@ -78,6 +78,7 @@ const getAllReservations = async (reservationDAO, tableDAO) => {
       reservation.seatingType = "—";
     }
     reservation.menu = menuLabel(reservation.menu_req, reservation.table_type_req);
+    reservation.contacted_at = reservation.contacted_at ?? null;
   }
 
   return reservations;
@@ -471,9 +472,9 @@ const registerReservation = async (reservationDAO, payload, tableDAO) => {
     };
   }
 
-  // 2️⃣ Table is available - Create reservation (single table only)
+  // 2️⃣ Table is available - Create reservation (single table only). Leave status pending until arrival.
   let reservation = await reservationDAO.createReservation(payload);
-  await reservationDAO.setReservationTable(reservation.id, tableResult.id);
+  await reservationDAO.setReservationTableIdOnly(reservation.id, tableResult.id);
   reservation = await reservationDAO.findReservationById(reservation.id);
 
   const latestSettings = readSettings();
@@ -611,6 +612,75 @@ const chooseTable = async (
 };
 
 /* =========================
+   MANUAL RESERVATION (ADMIN)
+========================= */
+
+const createManualReservation = async (reservationDAO, tableDAO, payload) => {
+  const tableId = payload.tableId != null ? parseInt(payload.tableId, 10) : null;
+  if (!tableId || !Number.isInteger(tableId)) {
+    throw { status: 400, message: "Please select a table." };
+  }
+
+  const table = await tableDAO.findTableById(tableId);
+  if (!table) {
+    throw { status: 404, message: "Table not found." };
+  }
+
+  const settings = readSettings();
+  const durationRacletteMin = settings.reservationDurationRacletteMin ?? 120;
+  const durationStandardMin = settings.reservationDurationStandardMin ?? 60;
+  const tableType = table.table_type || "standard";
+  let durationMin;
+  if (payload.durationMin != null && payload.durationMin !== "") {
+    durationMin = Math.max(15, Math.min(480, parseInt(payload.durationMin, 10) || 60));
+  } else if (payload.endTime && payload.resTime) {
+    const [sh, sm] = String(payload.resTime).trim().substring(0, 5).split(":").map(Number);
+    const [eh, em] = String(payload.endTime).trim().substring(0, 5).split(":").map(Number);
+    durationMin = Math.max(15, Math.min(480, ((eh || 0) * 60 + (em || 0)) - ((sh || 0) * 60 + (sm || 0))));
+  } else {
+    durationMin = tableType === "raclette" ? durationRacletteMin : durationStandardMin;
+  }
+
+  const now = new Date();
+  const todayStr = dateTimeValidator.asDateString(now);
+  const resDate = (payload.resDate && String(payload.resDate).trim()) || todayStr;
+  let resTime = (payload.resTime && String(payload.resTime).trim()) || "12:00";
+  if (resTime.length === 5) resTime = resTime + ":00";
+  resTime = resTime.substring(0, 8);
+  const people = Math.max(1, Math.min(20, parseInt(payload.people, 10) || 1));
+
+  const firstName = (payload.firstName && String(payload.firstName).trim()) || "Walk-in";
+  const lastName = (payload.lastName && String(payload.lastName).trim()) || "Guest";
+  let phone = (payload.phone && String(payload.phone).trim());
+  if (!phone || !/^\+?[1-9]/.test(phone)) phone = "+1" + String(Date.now()).slice(-9).padStart(9, "0");
+  phone = normalizePhone(phone) || "+1000000000";
+  const email = (payload.email && String(payload.email).trim()) || "walkin-" + Date.now() + "@local.dev";
+  const menu_req = (payload.menu_req != null && String(payload.menu_req).trim() !== "")
+    ? String(payload.menu_req).trim()
+    : "";
+
+  const resPayload = {
+    resDate,
+    resTime: resTime.substring(0, 5),
+    people,
+    tableId,
+    durationMin,
+    table_type_req: tableType,
+    is_private_req: table.is_private !== false,
+    seating_type_req: table.seating_type || "chairs",
+    menu_req,
+    firstName,
+    lastName,
+    phone,
+    email,
+  };
+
+  const reservation = await reservationDAO.createReservation(resPayload);
+  await reservationDAO.setReservationTableIdOnly(reservation.id, tableId);
+  return reservationDAO.findReservationById(reservation.id);
+};
+
+/* =========================
    EXPORTS
 ========================= */
 
@@ -620,4 +690,5 @@ module.exports = {
   editReservation,
   cancelReservation,
   chooseTable,
+  createManualReservation,
 };

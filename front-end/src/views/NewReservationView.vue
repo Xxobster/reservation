@@ -290,7 +290,7 @@ const resetForm = () => {
         <div class="checkbox-group">
           <label class="checkbox-label">
             <input type="checkbox" v-model="racletteChecked" />
-            <span>Raclette</span>
+            <span>Raclette <span class="fondue-note">(Shared table)</span></span>
           </label>
           <label class="checkbox-label">
             <input type="checkbox" v-model="fondueChecked" />

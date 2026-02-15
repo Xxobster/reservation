@@ -76,6 +76,13 @@ const reservation = ref({
     placeholderText: "Enter the number of people...",
     value: props.reservation?.people?.toString(),
   },
+  menu: {
+    textBoxType: "text",
+    id: "menu",
+    labelText: "Menu",
+    placeholderText: "e.g. Raclette, Fondue, or any text...",
+    value: props.reservation?.menu_req ?? props.reservation?.menu ?? "",
+  },
 });
 
 // When start time changes, keep end time valid (if end <= start, nudge end to start + 30)
@@ -123,6 +130,7 @@ const editReservation = async () => {
     resTime: start,
     people: peopleNum,
     durationMin: duration,
+    menu_req: (base.menu != null ? String(base.menu) : "").trim(),
   };
 
   try {

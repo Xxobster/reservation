@@ -40,6 +40,11 @@ const partners = [
     url: "https://maps.app.goo.gl/nbVV7M8wfW6NQJo27",
     description: "Don Falang is a small private island near Don Det offering a peaceful homestay experience, surrounded by the Mekong and far from the noise of the main island.",
   },
+  {
+    name: "Fandee Island - Treehouses, Tiny Houses & Zipline - Tad Lo, Boloven Loop Pakse ດອນຝັນດີ",
+    url: "https://maps.app.goo.gl/ipJcVturAn2nVMbx6",
+    description: "Fandee Island in Tad Lo offers unique treehouses and tiny houses set in lush riverside nature, with a zipline and easy access to waterfalls along the Boloven Loop.",
+  },
 ];
 </script>
 

@@ -11,6 +11,11 @@ router
   .all(httpMethodError);
 
 router
+  .route("/manual")
+  .post(tryCatchHandler(reservationController.createManualHandler))
+  .all(httpMethodError);
+
+router
   .route("/:reservationId")
   .patch(tryCatchHandler(reservationController.editHandler))
   .delete(tryCatchHandler(reservationController.cancelHandler))
@@ -19,6 +24,16 @@ router
 router
   .route("/:reservationId/send-confirmation-email")
   .post(tryCatchHandler(reservationController.sendConfirmationEmailHandler))
+  .all(httpMethodError);
+
+router
+  .route("/:reservationId/mark-contacted")
+  .post(tryCatchHandler(reservationController.markContactedHandler))
+  .all(httpMethodError);
+
+router
+  .route("/:reservationId/toggle-arrived")
+  .post(tryCatchHandler(reservationController.toggleArrivedHandler))
   .all(httpMethodError);
 
 router

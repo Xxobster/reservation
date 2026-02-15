@@ -141,9 +141,52 @@ const sendConfirmationEmailHandler = async (req, res) => {
     isRaclette,
   });
 
+  await reservationDAO.setContactedAt(reservationId);
+
   return res.status(200).json({
     success: true,
     message: "Confirmation email sent.",
+  });
+};
+
+const markContactedHandler = async (req, res) => {
+  const reservationId = req.params.reservationId;
+  const reservation = await reservationDAO.findReservationById(reservationId);
+  if (!reservation) {
+    return res.status(404).json({ success: false, message: "Reservation not found." });
+  }
+  await reservationDAO.setContactedAt(reservationId);
+  return res.status(200).json({
+    success: true,
+    message: "Marked as contacted.",
+  });
+};
+
+const createManualHandler = async (req, res) => {
+  const result = await reservationService.createManualReservation(
+    reservationDAO,
+    tableDAO,
+    req.body
+  );
+  return res.status(201).json({
+    success: true,
+    message: "Reservation added.",
+    item: result,
+  });
+};
+
+const toggleArrivedHandler = async (req, res) => {
+  const reservationId = req.params.reservationId;
+  const reservation = await reservationDAO.findReservationById(reservationId);
+  if (!reservation) {
+    return res.status(404).json({ success: false, message: "Reservation not found." });
+  }
+  const nextStatus = reservation.resStatus === "seated" ? "pending" : "seated";
+  await reservationDAO.setReservationStatus(reservation, nextStatus);
+  return res.status(200).json({
+    success: true,
+    message: nextStatus === "seated" ? "Marked as arrived." : "Marked as not arrived.",
+    resStatus: nextStatus,
   });
 };
 
@@ -154,4 +197,7 @@ module.exports = {
   cancelHandler,
   chooseTableHandler,
   sendConfirmationEmailHandler,
+  markContactedHandler,
+  createManualHandler,
+  toggleArrivedHandler,
 };

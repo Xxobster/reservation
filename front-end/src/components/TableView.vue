@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import ButtonAction from "@/components/ButtonAction.vue";
 import CrossIcon from "~icons/radix-icons/cross-circled";
 import NotFoundResource from "@/components/NotFoundResource.vue";
@@ -14,6 +14,8 @@ const emit = defineEmits([
   "onOpen",
   "onSelectedReservation",
   "onCanceledReservation",
+  "onContacted",
+  "onArrivalToggled",
 ]);
 
 const sendingEmailId = ref(null);
@@ -25,12 +27,50 @@ const sendConfirmationEmail = async (item) => {
   emailError.value = null;
   try {
     await reservationAPI.sendConfirmationEmail(item.id);
+    emit("onContacted");
   } catch (err) {
     emailError.value = err.response?.data?.message || "Failed to send email.";
   } finally {
     sendingEmailId.value = null;
   }
 };
+
+const openWhatsApp = async (item) => {
+  const url = getWhatsAppUrl(item);
+  if (!url) return;
+  try {
+    await reservationAPI.markContacted(item.id);
+    emit("onContacted");
+  } catch (_) {}
+  window.open(url, "_blank");
+};
+
+const togglingArrivalId = ref(null);
+const toggleArrived = async (item) => {
+  if (item.resStatus === "missed") return;
+  if (togglingArrivalId.value === item.id) return;
+  togglingArrivalId.value = item.id;
+  try {
+    await reservationAPI.toggleArrived(item.id);
+    emit("onArrivalToggled");
+  } catch (_) {}
+  togglingArrivalId.value = null;
+};
+
+const timeSortOrder = ref("asc");
+const toggleTimeSort = () => {
+  timeSortOrder.value = timeSortOrder.value === "asc" ? "desc" : "asc";
+};
+const sortedCollection = computed(() => {
+  const list = props.collection || [];
+  const order = timeSortOrder.value;
+  return list.slice().sort((a, b) => {
+    const tA = String(a.resTime || "").trim().substring(0, 8);
+    const tB = String(b.resTime || "").trim().substring(0, 8);
+    const cmp = tA.localeCompare(tB);
+    return order === "asc" ? cmp : -cmp;
+  });
+});
 
 const passItemData = (item) => {
   emit("onSelectedReservation", item);
@@ -150,23 +190,36 @@ const cancelReservation = async (item) => {
     <table key="1">
       <thead>
         <tr class="header-row">
-          <th v-for="field in props.fields" :key="field">
-            {{ field }}
+          <th
+            v-for="(label, key) in props.fields"
+            :key="key"
+            :class="{ 'th-sortable': key === 'resTime' }"
+            @click="key === 'resTime' ? toggleTimeSort() : null"
+          >
+            {{ label }}
+            <span v-if="key === 'resTime'" class="sort-indicator" :title="timeSortOrder === 'asc' ? 'Earliest first (click to sort latest first)' : 'Latest first (click to sort earliest first)'">{{ timeSortOrder === 'asc' ? ' ↑' : ' ↓' }}</span>
           </th>
           <th>#</th>
         </tr>
       </thead>
       <tbody>
-        <tr class="body-row" v-for="item in props.collection" :key="item">
+        <tr
+          class="body-row"
+          :class="{ 'row-arrived': item.resStatus === 'seated' }"
+          v-for="item in sortedCollection"
+          :key="item.id"
+          @click="toggleArrived(item)"
+          title="Click row to toggle arrived / not arrived"
+        >
           <td v-for="(label, key) in props.fields" :key="key">
             <span v-if="key === 'phone'" class="phone-cell">
               {{ item[key] ?? "—" }}
-              <a 
+              <a
                 v-if="item[key]"
-                :href="getWhatsAppUrl(item)" 
-                target="_blank" 
+                href="#"
                 class="whatsapp-btn"
                 title="Contact via WhatsApp"
+                @click.prevent.stop="openWhatsApp(item)"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#25D366">
                   <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
@@ -178,16 +231,17 @@ const cancelReservation = async (item) => {
                 class="email-btn"
                 title="Send confirmation email (same as WhatsApp message)"
                 :disabled="sendingEmailId === item.id"
-                @click="sendConfirmationEmail(item)"
+                @click.stop="sendConfirmationEmail(item)"
               >
                 <svg v-if="sendingEmailId !== item.id" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                 <span v-else class="email-btn-sending">…</span>
               </button>
+              <span v-if="item.contacted_at" class="contacted-check" title="Message sent (WhatsApp or email)">✓</span>
             </span>
             <span v-else-if="key === 'resTime'">{{ formatTimeRange(item) }}</span>
             <span v-else>{{ item[key] ?? "—" }}</span>
           </td>
-          <td>
+          <td @click.stop>
             <div class="actions-row">
               <span
                 class="status-badge"
@@ -310,14 +364,40 @@ thead {
   border-top-right-radius: 10px;
 }
 
+.th-sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.th-sortable:hover {
+  background-color: #e6b000 !important;
+}
+
+.sort-indicator {
+  opacity: 0.9;
+  font-size: 0.9em;
+}
+
 .body-row {
   background-color: #111;
   font-family: "Montserrat-Light";
   color: #fff;
 }
 
+.body-row {
+  cursor: pointer;
+}
+
 .body-row:hover {
   background-color: #1a1a1a;
+}
+
+.body-row.row-arrived {
+  background-color: rgba(34, 197, 94, 0.12);
+}
+
+.body-row.row-arrived:hover {
+  background-color: rgba(34, 197, 94, 0.18);
 }
 
 .body-row td {
@@ -386,6 +466,16 @@ thead {
 
 .email-btn-sending {
   font-size: 14px;
+}
+
+.contacted-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #22c55e;
+  font-size: 18px;
+  font-weight: bold;
+  margin-left: 2px;
 }
 
 .actions-row {

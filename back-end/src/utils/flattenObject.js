@@ -3,7 +3,9 @@ const flattenObject = (userObject) => {
 
   Object.keys(userObject).forEach((key) => {
     const value = userObject[key];
-    if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+    if (value instanceof Date) {
+      flattened[key] = value;
+    } else if (typeof value === "object" && value !== null && !Array.isArray(value)) {
       Object.assign(flattened, flattenObject(value));
     } else {
       flattened[key] = value;

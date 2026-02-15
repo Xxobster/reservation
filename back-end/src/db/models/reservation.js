@@ -98,9 +98,13 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: "chairs",
       },
       menu_req: {
-        type: DataTypes.STRING(20),
+        type: DataTypes.STRING(255),
         allowNull: false,
         defaultValue: "fondue",
+      },
+      contacted_at: {
+        type: DataTypes.DATE,
+        allowNull: true,
       },
     },
     {

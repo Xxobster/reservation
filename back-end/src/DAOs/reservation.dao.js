@@ -1,5 +1,5 @@
 const db = require("../db/models");
-const { fn, col } = db.sequelize;
+const { fn, col, QueryTypes } = db.sequelize;
 const Reservation = db.reservation;
 const Customer = db.customer;
 const Table = db.table;
@@ -7,7 +7,7 @@ const { flattenArrayObjects } = require("../utils/flattenObject");
 
 const findAllReservations = async () => {
   const reservations = await Reservation.findAll({
-    attributes: ["id", "resDate", "resTime", "resStatus", "people", "tableId", "table_type_req", "seating_type_req", "menu_req", "durationMin"],
+    attributes: ["id", "resDate", "resTime", "resStatus", "people", "tableId", "table_type_req", "seating_type_req", "menu_req", "durationMin", "contacted_at"],
     include: [
       {
         model: Customer,
@@ -136,6 +136,17 @@ const updateReservation = async (reservationId, resDetails) => {
   return result;
 };
 
+/** Set contacted_at to now for a reservation. */
+const setContactedAt = async (reservationId) => {
+  const id = parseInt(reservationId, 10);
+  if (!Number.isInteger(id)) return 0;
+  const [affectedRows] = await Reservation.update(
+    { contacted_at: new Date() },
+    { where: { id } }
+  );
+  return affectedRows;
+};
+
 const deleteReservation = async (reservation) => {
   return await reservation.destroy();
 };
@@ -222,7 +233,20 @@ const setReservationTable = async (reservationId, tableId) => {
   );
 };
 
-
+/** Assign table to reservation (mark table occupied) but keep resStatus as-is (e.g. pending). Used when creating a new reservation. */
+const setReservationTableIdOnly = async (reservationId, tableId) => {
+  const table = await Table.findOne({ where: { id: tableId } });
+  if (table && table.table_type !== "raclette") {
+    await Table.update(
+      { isOccupied: true, reservationId: reservationId },
+      { where: { id: tableId } }
+    );
+  }
+  return await Reservation.update(
+    { tableId: tableId },
+    { where: { id: reservationId } }
+  );
+};
 
 module.exports = {
   findAllReservations,
@@ -235,5 +259,7 @@ module.exports = {
   countOverlappingPeople,
   countPeopleStartingAt,
   setReservationTable,
+  setReservationTableIdOnly,
   setReservationStatus,
+  setContactedAt,
 };
