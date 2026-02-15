@@ -8,3 +8,8 @@ export const getDeliveriesByGuesthouse = (params) =>
 export const deleteDelivery = (id) => API().delete(`/deliveries/${id}`);
 
 export const markDeliveryPaid = (id) => API().patch(`/deliveries/${id}`, { isPaid: true });
+
+export const getDeliveryMenu = () => API().get("/deliveries/menu");
+
+export const putDeliveryMenu = (menu, adminPin) =>
+  API().put("/deliveries/menu", { menu, adminPin });

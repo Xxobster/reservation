@@ -9,8 +9,8 @@ const findAllTables = async (filterDate = null, filterTime = null) => {
   const targetDate = filterDate || now.toISOString().split('T')[0];
   const targetTime = filterTime || now.toTimeString().split(' ')[0].substring(0, 5);
 
-  // Get all tables with their booked seats count for the specified date/time slot
-  // Checks for overlapping reservations based on their duration
+  // Get all tables with bookedSeats (seated) and reservedSeats (any reservation) for the slot
+  const targetTimeNorm = targetTime.length === 5 ? targetTime + ":00" : targetTime;
   const tables = await db.sequelize.query(
     `
     SELECT t.*,
@@ -20,10 +20,20 @@ const findAllTables = async (filterDate = null, filterTime = null) => {
               WHERE r.tableId = t.id
                 AND r.resStatus = 'seated'
                 AND r.resDate = :targetDate
-                AND TIME(r.resTime) <= TIME(:targetTime)
-                AND ADDTIME(TIME(r.resTime), SEC_TO_TIME(r.durationMin * 60)) > TIME(:targetTime)
+                AND TIME(r.resTime) <= TIME(:targetTimeNorm)
+                AND ADDTIME(TIME(r.resTime), SEC_TO_TIME(r.durationMin * 60)) > TIME(:targetTimeNorm)
              ), 0
-           ) AS bookedSeats
+           ) AS bookedSeats,
+           COALESCE(
+             (SELECT SUM(r.people)
+              FROM Reservations r
+              WHERE r.tableId = t.id
+                AND r.resStatus != 'missed'
+                AND r.resDate = :targetDate
+                AND TIME(r.resTime) <= TIME(:targetTimeNorm)
+                AND ADDTIME(TIME(r.resTime), SEC_TO_TIME(r.durationMin * 60)) > TIME(:targetTimeNorm)
+             ), 0
+           ) AS reservedSeats
     FROM Tables t
     WHERE t.name NOT LIKE '%Damien burlot%'
     ORDER BY t.name ASC
@@ -31,7 +41,7 @@ const findAllTables = async (filterDate = null, filterTime = null) => {
     {
       replacements: {
         targetDate,
-        targetTime,
+        targetTimeNorm,
       },
       type: QueryTypes.SELECT,
     }

@@ -6,6 +6,7 @@ const { readSettings } = require("../utils/settingsReader");
 const { scheduleOrSendDeliveryNotification } = require("../utils/emailSender");
 
 const GUESTHOUSES_PATH = path.resolve(__dirname, "../../data/guesthouses.json");
+const DELIVERY_MENU_PATH = path.resolve(__dirname, "../../data/delivery-menu.json");
 
 const getGuesthouseList = () => {
   try {
@@ -177,9 +178,44 @@ const patchHandler = async (req, res) => {
   });
 };
 
+const readDeliveryMenu = () => {
+  try {
+    const data = fs.readFileSync(DELIVERY_MENU_PATH, "utf8");
+    const menu = JSON.parse(data);
+    return Array.isArray(menu) ? menu : [];
+  } catch (err) {
+    if (err.code === "ENOENT") return [];
+    throw err;
+  }
+};
+
+const getMenuHandler = (req, res) => {
+  const menu = readDeliveryMenu();
+  return res.status(200).json({ success: true, menu });
+};
+
+const putMenuHandler = (req, res) => {
+  const settings = readSettings();
+  const expectedPin = settings.adminPin != null ? String(settings.adminPin) : "";
+  const submittedPin = req.body && req.body.adminPin != null ? String(req.body.adminPin) : "";
+  if (expectedPin === "" || submittedPin !== expectedPin) {
+    return res.status(403).json({ success: false, message: "Invalid or missing admin PIN" });
+  }
+  const menu = req.body.menu;
+  if (!Array.isArray(menu)) {
+    return res.status(400).json({ success: false, message: "menu must be an array" });
+  }
+  const dir = path.dirname(DELIVERY_MENU_PATH);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(DELIVERY_MENU_PATH, JSON.stringify(menu, null, 2), "utf8");
+  return res.status(200).json({ success: true, message: "Menu saved" });
+};
+
 module.exports = {
   createHandler,
   getByGuesthouseHandler,
   deleteHandler,
   patchHandler,
+  getMenuHandler,
+  putMenuHandler,
 };

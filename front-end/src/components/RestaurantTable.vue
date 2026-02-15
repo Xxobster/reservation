@@ -9,12 +9,20 @@ const bookedSeats = computed(() => {
   return parseInt(props.table?.bookedSeats) || 0;
 });
 
-const isSeatOccupied = (seatIndex) => {
+const reservedSeats = computed(() => {
+  return parseInt(props.table?.reservedSeats) || 0;
+});
+
+const isSeatSeated = (seatIndex) => {
   return seatIndex <= bookedSeats.value;
 };
 
+const isSeatReserved = (seatIndex) => {
+  return seatIndex <= reservedSeats.value && seatIndex > bookedSeats.value;
+};
+
 const hasOccupiedSeats = computed(() => {
-  return bookedSeats.value > 0;
+  return reservedSeats.value > 0;
 });
 </script>
 
@@ -23,7 +31,7 @@ const hasOccupiedSeats = computed(() => {
     <div class="header">
       <div class="title">{{ props.table?.name }}</div>
       <div class="table-status" v-if="hasOccupiedSeats">
-        {{ bookedSeats }}/{{ props.table?.capacity }}
+        {{ reservedSeats }}/{{ props.table?.capacity }}
       </div>
     </div>
 
@@ -33,7 +41,10 @@ const hasOccupiedSeats = computed(() => {
           v-for="seat in props.table?.capacity"
           :key="seat"
           class="circle"
-          :class="{ occupiedColor: isSeatOccupied(seat) }"
+          :class="{
+            seatedColor: isSeatSeated(seat),
+            reservedColor: isSeatReserved(seat),
+          }"
         ></div>
       </div>
     </div>
@@ -134,10 +145,15 @@ const hasOccupiedSeats = computed(() => {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background-color: #22c55e;
+  background-color: #444;
 }
 
-.occupiedColor {
+.seatedColor {
+  background-color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.5);
+}
+
+.reservedColor {
   background-color: #ffc300;
   border: 1px solid rgba(255, 195, 0, 0.5);
 }

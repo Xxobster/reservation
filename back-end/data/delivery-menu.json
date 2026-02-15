@@ -1,0 +1,78 @@
+[
+  {
+    "name": "Make your own",
+    "items": [
+      { "id": 1, "name": "Half French baguette", "nameTh": "ขนมปังบาแกตต์ฝรั่งเศสครึ่งก้อน", "price": 30000, "description": "", "descriptionTh": "" },
+      { "id": 2, "name": "Butter (15g)", "nameTh": "เนย (15 กรัม)", "price": 15000, "description": "", "descriptionTh": "" },
+      { "id": 3, "name": "Mango Jelly (30g)", "nameTh": "วุ้นมะม่วง (30 กรัม)", "price": 15000, "description": "", "descriptionTh": "" },
+      { "id": 4, "name": "Dulce de Leche (30g)", "nameTh": "ดุลเซเดเลเช (30 กรัม)", "price": 10000, "description": "", "descriptionTh": "" },
+      { "id": 5, "name": "Plain Yogurt", "nameTh": "โยเกิร์ตรสธรรมชาติ", "price": 40000, "description": "", "descriptionTh": "" },
+      { "id": 6, "name": "Choco Cereals", "nameTh": "ซีเรียลช็อคโกแลต", "price": 55000, "description": "", "descriptionTh": "" },
+      { "id": 7, "name": "Milk (200mL)", "nameTh": "นม (200 มล.)", "price": 25000, "description": "", "descriptionTh": "" }
+    ]
+  },
+  {
+    "name": "Sunset Aperitif Collection",
+    "items": [
+      { "id": 12, "name": "Salted Peanuts", "nameTh": "ถั่วลิสงคั่วเกลือ", "price": 25000, "description": "House peanuts, lightly salted & oven-dried to a crisp", "descriptionTh": "" },
+      { "id": 13, "name": "Olives Bowl", "nameTh": "ชามโอลีฟ", "price": 65000, "description": "Green pitted olives, lightly marinated", "descriptionTh": "" },
+      { "id": 14, "name": "Mozzarella Bowl", "nameTh": "ชามมอสซาเรลลา", "price": 45000, "description": "Cubes in olive oil, lime & mint", "descriptionTh": "" },
+      { "id": 15, "name": "Saucisson Bowl — France", "nameTh": "ชามซอสซิสซอง — ฝรั่งเศส", "price": 60000, "description": "Air-dried pork saucisson, hand-sliced", "descriptionTh": "" }
+    ]
+  },
+  {
+    "name": "Sandwiches",
+    "items": [
+      { "id": 8, "name": "Traditional Pâté Sandwich", "nameTh": "แซนด์วิชพาสต้าแบบดั้งเดิม", "price": 75000, "description": "Pork & liver pâté, house pickles, served in a half French baguette", "descriptionTh": "" },
+      { "id": 9, "name": "Chicken Rillettes Sandwich", "nameTh": "แซนด์วิชริยองไก่", "price": 90000, "description": "Slow-cooked rillettes, pickles, served in a half French baguette", "descriptionTh": "" },
+      { "id": 10, "name": "Eggplant Caviar with Sweet Paprika Sandwich", "nameTh": "แซนด์วิชคาเวียร์มะเขือกับพริกหวาน", "price": 90000, "description": "Roasted eggplant, paprika & seeds, served in a half French baguette", "descriptionTh": "" },
+      { "id": 11, "name": "Green Olive Tapenade Sandwich", "nameTh": "แซนด์วิชทาเปนาด์โอลีฟเขียว", "price": 115000, "description": "A house-crafted green olive tapenade, blended with olive oil, fresh and roasted garlic, lime, and a delicate hint of mustard, served in a half French baguette", "descriptionTh": "" },
+      { "id": 34, "name": "Ham, butter and cornichons Sandwich", "nameTh": "แซนด์วิชแฮม เนย และคอร์นิชอง", "price": 105000, "description": "Ham layered with creamy butter and crisp cornichons, served in a half French baguette", "descriptionTh": "" },
+      { "id": 35, "name": "Butter and Comté Sandwich", "nameTh": "แซนด์วิชเนยและกงเต", "price": 150000, "description": "Silky butter and aged Comté cheese, simply nestled in a half French baguette", "descriptionTh": "" }
+    ]
+  },
+  {
+    "name": "Platters",
+    "items": [
+      { "id": 16, "name": "Charcuterie Platter (120g)", "nameTh": "จานเนื้อและไส้กรอก (120 กรัม)", "price": 190000, "description": "House delicatessen, French baguette, pickles & butter", "descriptionTh": "" },
+      { "id": 17, "name": "Cheese Platter (100g)", "nameTh": "จานชีส (100 กรัม)", "price": 265000, "description": "Fine French cheeses, French baguette, pickles & butter", "descriptionTh": "" },
+      { "id": 18, "name": "Mixed Platter (75g cheese / 100g meat)", "nameTh": "จานรวม (ชีส 75 กรัม / เนื้อ 100 กรัม)", "price": 320000, "description": "Cheeses & delicatessen, French baguette, pickles & butter", "descriptionTh": "" }
+    ]
+  },
+  {
+    "name": "Main Courses",
+    "items": [
+      { "id": 19, "name": "Slow-Braised Chicken in Dark Beer", "nameTh": "ไก่ตุ๋นเบียร์ดำ", "price": 150000, "description": "Chicken slowly braised in dark beer with Dijon mustard and sautéed onions, served with potatoes", "descriptionTh": "" },
+      { "id": 20, "name": "Slow-Braised Pork in Caramel Sauce", "nameTh": "หมูตุ๋นซอสคาราเมล", "price": 150000, "description": "Pieces of Pork simmered in a sweet and savory caramel sauce with toasted peanuts, served with potatoes", "descriptionTh": "" }
+    ]
+  },
+  {
+    "name": "French Wines",
+    "items": [
+      { "id": 33, "name": "Camille de Labrie – Saint-Émilion (Red, 750 mL)", "nameTh": "ไวน์ Camille de Labrie – Saint-Émilion (แดง 750 มล.)", "price": 710000, "description": "A refined Saint-Émilion with silky tannins, ripe red fruit, subtle spice, and an elegant, lingering finish", "descriptionTh": "" }
+    ]
+  },
+  {
+    "name": "DRINKS",
+    "items": [
+      { "id": 36, "name": "Choco Shake", "nameTh": "ช็อกโกแลตเชค", "price": 35000, "description": "", "descriptionTh": "" }
+    ]
+  },
+  {
+    "name": "Pizza Baguette",
+    "items": [
+      { "id": 21, "name": "Pizza Baguette", "nameTh": "พิซซ่าบาแกตต์", "price": 120000, "description": "Crispy French baguette, tomato sauce, mozzarella & oregano", "descriptionTh": "", "isPizzaTopping": false },
+      { "id": 22, "name": "Blue Cheese", "nameTh": "เบลูชีส", "price": 50000, "description": "", "descriptionTh": "", "isPizzaTopping": true },
+      { "id": 23, "name": "Raclette Cheese", "nameTh": "ราคเล็ตชีส", "price": 95000, "description": "", "descriptionTh": "", "isPizzaTopping": true },
+      { "id": 24, "name": "Olive Oil", "nameTh": "น้ำมันโอลีฟ", "price": 30000, "description": "", "descriptionTh": "", "isPizzaTopping": true },
+      { "id": 25, "name": "Olive", "nameTh": "โอลีฟ", "price": 35000, "description": "", "descriptionTh": "", "isPizzaTopping": true },
+      { "id": 26, "name": "Oignons", "nameTh": "หอมใหญ่", "price": 10000, "description": "", "descriptionTh": "", "isPizzaTopping": true },
+      { "id": 27, "name": "Potato", "nameTh": "มันฝรั่ง", "price": 10000, "description": "", "descriptionTh": "", "isPizzaTopping": true },
+      { "id": 28, "name": "Ham", "nameTh": "แฮม", "price": 45000, "description": "", "descriptionTh": "", "isPizzaTopping": true },
+      { "id": 29, "name": "Bacon", "nameTh": "เบคอน", "price": 45000, "description": "", "descriptionTh": "", "isPizzaTopping": true },
+      { "id": 30, "name": "Dry Sausage", "nameTh": "ไส้กรอกแห้ง", "price": 60000, "description": "", "descriptionTh": "", "isPizzaTopping": true },
+      { "id": 31, "name": "Cured Pork", "nameTh": "หมูแฮม", "price": 60000, "description": "", "descriptionTh": "", "isPizzaTopping": true },
+      { "id": 32, "name": "Reblochon", "nameTh": "เรโบลชง", "price": 95000, "description": "", "descriptionTh": "", "isPizzaTopping": true }
+    ]
+  }
+]

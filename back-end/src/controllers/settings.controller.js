@@ -27,7 +27,8 @@ const writeSettings = (settings) => {
 
 const getHandler = (req, res) => {
   const settings = readSettings();
-  return res.status(200).json(settings);
+  const { adminPin, ...publicSettings } = settings;
+  return res.status(200).json(publicSettings);
 };
 
 const patchHandler = (req, res) => {

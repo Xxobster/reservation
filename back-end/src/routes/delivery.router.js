@@ -15,6 +15,12 @@ router
   .all(httpMethodError);
 
 router
+  .route("/menu")
+  .get(tryCatchHandler(deliveryController.getMenuHandler))
+  .put(tryCatchHandler(deliveryController.putMenuHandler))
+  .all(httpMethodError);
+
+router
   .route("/:id")
   .delete(tryCatchHandler(deliveryController.deleteHandler))
   .patch(tryCatchHandler(deliveryController.patchHandler))

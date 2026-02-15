@@ -22,6 +22,7 @@ const DEFAULT_SETTINGS = {
   deliveryNotifyEmails: "PetuniaSch59@gmail.com, sylvain.atw@gmail.com",
   deliveryFeeGuesthouseLAK: 30000,
   deliveryFeeDeliveryPersonLAK: 20000,
+  adminPin: "1954",
 };
 
 const readSettings = () => {

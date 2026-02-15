@@ -393,11 +393,11 @@ thead {
 }
 
 .body-row.row-arrived {
-  background-color: rgba(34, 197, 94, 0.12);
+  background-color: rgba(34, 197, 94, 0.28);
 }
 
 .body-row.row-arrived:hover {
-  background-color: rgba(34, 197, 94, 0.18);
+  background-color: rgba(22, 101, 52, 0.6);
 }
 
 .body-row td {

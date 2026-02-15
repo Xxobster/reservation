@@ -2,91 +2,204 @@
 import { ref, computed, onMounted } from "vue";
 import ButtonFilled from "@/components/ButtonFilled.vue";
 import { getSettings } from "@/services/settingsAPI";
-import { createDelivery } from "@/services/deliveryAPI";
+import { createDelivery, getDeliveryMenu, putDeliveryMenu } from "@/services/deliveryAPI";
 import { getGuesthouseList } from "@/services/guesthouseAPI";
 import normalizePhone from "@/utils/normalizePhone";
 
 const showPaymentsFullscreen = ref(false);
 
-// Delivery / Pick-up menu
-const menuCategories = ref([
-  {
-    name: "Make your own",
-    items: [
-      { id: 1, name: "Half French baguette", nameTh: "ขนมปังบาแกตต์ฝรั่งเศสครึ่งก้อน", price: 30000, description: "" },
-      { id: 2, name: "Butter (15g)", nameTh: "เนย (15 กรัม)", price: 15000, description: "" },
-      { id: 3, name: "Mango Jelly (30g)", nameTh: "วุ้นมะม่วง (30 กรัม)", price: 15000, description: "" },
-      { id: 4, name: "Dulce de Leche (30g)", nameTh: "ดุลเซเดเลเช (30 กรัม)", price: 10000, description: "" },
-      { id: 5, name: "Plain Yogurt", nameTh: "โยเกิร์ตรสธรรมชาติ", price: 40000, description: "" },
-      { id: 6, name: "Choco Cereals", nameTh: "ซีเรียลช็อคโกแลต", price: 55000, description: "" },
-      { id: 7, name: "Milk (200mL)", nameTh: "นม (200 มล.)", price: 25000, description: "" },
-    ]
-  },
-  {
-    name: "Sunset Aperitif Collection",
-    items: [
-      { id: 12, name: "Salted Peanuts", nameTh: "ถั่วลิสงคั่วเกลือ", price: 25000, description: "House peanuts, lightly salted & oven-dried to a crisp" },
-      { id: 13, name: "Olives Bowl", nameTh: "ชามโอลีฟ", price: 65000, description: "Green pitted olives, lightly marinated" },
-      { id: 14, name: "Mozzarella Bowl", nameTh: "ชามมอสซาเรลลา", price: 45000, description: "Cubes in olive oil, lime & mint" },
-      { id: 15, name: "Saucisson Bowl — France", nameTh: "ชามซอสซิสซอง — ฝรั่งเศส", price: 60000, description: "Air-dried pork saucisson, hand-sliced" },
-    ]
-  },
-  {
-    name: "Sandwiches",
-    items: [
-      { id: 8, name: "Traditional Pâté Sandwich", nameTh: "แซนด์วิชพาสต้าแบบดั้งเดิม", price: 75000, description: "Pork & liver pâté, house pickles, served in a half French baguette" },
-      { id: 9, name: "Chicken Rillettes Sandwich", nameTh: "แซนด์วิชริยองไก่", price: 90000, description: "Slow-cooked rillettes, pickles, served in a half French baguette" },
-      { id: 10, name: "Eggplant Caviar with Sweet Paprika Sandwich", nameTh: "แซนด์วิชคาเวียร์มะเขือกับพริกหวาน", price: 90000, description: "Roasted eggplant, paprika & seeds, served in a half French baguette" },
-      { id: 11, name: "Green Olive Tapenade Sandwich", nameTh: "แซนด์วิชทาเปนาด์โอลีฟเขียว", price: 115000, description: "A house-crafted green olive tapenade, blended with olive oil, fresh and roasted garlic, lime, and a delicate hint of mustard, served in a half French baguette" },
-      { id: 34, name: "Ham, butter and cornichons Sandwich", nameTh: "แซนด์วิชแฮม เนย และคอร์นิชอง", price: 105000, description: "Ham layered with creamy butter and crisp cornichons, served in a half French baguette" },
-      { id: 35, name: "Butter and Comté Sandwich", nameTh: "แซนด์วิชเนยและกงเต", price: 150000, description: "Silky butter and aged Comté cheese, simply nestled in a half French baguette" },
-    ]
-  },
-  {
-    name: "Platters",
-    items: [
-      { id: 16, name: "Charcuterie Platter (120g)", nameTh: "จานเนื้อและไส้กรอก (120 กรัม)", price: 190000, description: "House delicatessen, French baguette, pickles & butter" },
-      { id: 17, name: "Cheese Platter (100g)", nameTh: "จานชีส (100 กรัม)", price: 265000, description: "Fine French cheeses, French baguette, pickles & butter" },
-      { id: 18, name: "Mixed Platter (75g cheese / 100g meat)", nameTh: "จานรวม (ชีส 75 กรัม / เนื้อ 100 กรัม)", price: 320000, description: "Cheeses & delicatessen, French baguette, pickles & butter" },
-    ]
-  },
-  {
-    name: "Main Courses",
-    items: [
-      { id: 19, name: "Slow-Braised Chicken in Dark Beer", nameTh: "ไก่ตุ๋นเบียร์ดำ", price: 150000, description: "Chicken slowly braised in dark beer with Dijon mustard and sautéed onions, served with potatoes" },
-      { id: 20, name: "Slow-Braised Pork in Caramel Sauce", nameTh: "หมูตุ๋นซอสคาราเมล", price: 150000, description: "Pieces of Pork simmered in a sweet and savory caramel sauce with toasted peanuts, served with potatoes" },
-    ]
-  },
-  {
-    name: "French Wines",
-    items: [
-      { id: 33, name: "Camille de Labrie – Saint-Émilion (Red, 750 mL)", nameTh: "ไวน์ Camille de Labrie – Saint-Émilion (แดง 750 มล.)", price: 710000, description: "A refined Saint-Émilion with silky tannins, ripe red fruit, subtle spice, and an elegant, lingering finish" },
-    ]
-  },
-  {
-    name: "DRINKS",
-    items: [
-      { id: 36, name: "Choco Shake", nameTh: "ช็อกโกแลตเชค", price: 35000, description: "" },
-    ]
-  },
-  {
-    name: "Pizza Baguette",
-    items: [
-      { id: 21, name: "Pizza Baguette", nameTh: "พิซซ่าบาแกตต์", price: 120000, description: "Crispy French baguette, tomato sauce, mozzarella & oregano" },
-      { id: 22, name: "Blue Cheese", nameTh: "เบลูชีส", price: 50000, description: "", isPizzaTopping: true },
-      { id: 23, name: "Raclette Cheese", nameTh: "ราคเล็ตชีส", price: 95000, description: "", isPizzaTopping: true },
-      { id: 24, name: "Olive Oil", nameTh: "น้ำมันโอลีฟ", price: 30000, description: "", isPizzaTopping: true },
-      { id: 25, name: "Olive", nameTh: "โอลีฟ", price: 35000, description: "", isPizzaTopping: true },
-      { id: 26, name: "Oignons", nameTh: "หอมใหญ่", price: 10000, description: "", isPizzaTopping: true },
-      { id: 27, name: "Potato", nameTh: "มันฝรั่ง", price: 10000, description: "", isPizzaTopping: true },
-      { id: 28, name: "Ham", nameTh: "แฮม", price: 45000, description: "", isPizzaTopping: true },
-      { id: 29, name: "Bacon", nameTh: "เบคอน", price: 45000, description: "", isPizzaTopping: true },
-      { id: 30, name: "Dry Sausage", nameTh: "ไส้กรอกแห้ง", price: 60000, description: "", isPizzaTopping: true },
-      { id: 31, name: "Cured Pork", nameTh: "หมูแฮม", price: 60000, description: "", isPizzaTopping: true },
-      { id: 32, name: "Reblochon", nameTh: "เรโบลชง", price: 95000, description: "", isPizzaTopping: true },
-    ]
+// Default menu (fallback when API fails or returns empty)
+const DEFAULT_MENU = [
+  { name: "Make your own", items: [
+    { id: 1, name: "Half French baguette", nameTh: "ขนมปังบาแกตต์ฝรั่งเศสครึ่งก้อน", price: 30000, description: "", descriptionTh: "" },
+    { id: 2, name: "Butter (15g)", nameTh: "เนย (15 กรัม)", price: 15000, description: "", descriptionTh: "" },
+    { id: 3, name: "Mango Jelly (30g)", nameTh: "วุ้นมะม่วง (30 กรัม)", price: 15000, description: "", descriptionTh: "" },
+    { id: 4, name: "Dulce de Leche (30g)", nameTh: "ดุลเซเดเลเช (30 กรัม)", price: 10000, description: "", descriptionTh: "" },
+    { id: 5, name: "Plain Yogurt", nameTh: "โยเกิร์ตรสธรรมชาติ", price: 40000, description: "", descriptionTh: "" },
+    { id: 6, name: "Choco Cereals", nameTh: "ซีเรียลช็อคโกแลต", price: 55000, description: "", descriptionTh: "" },
+    { id: 7, name: "Milk (200mL)", nameTh: "นม (200 มล.)", price: 25000, description: "", descriptionTh: "" },
+  ]},
+  { name: "Sunset Aperitif Collection", items: [
+    { id: 12, name: "Salted Peanuts", nameTh: "ถั่วลิสงคั่วเกลือ", price: 25000, description: "House peanuts, lightly salted & oven-dried to a crisp", descriptionTh: "" },
+    { id: 13, name: "Olives Bowl", nameTh: "ชามโอลีฟ", price: 65000, description: "Green pitted olives, lightly marinated", descriptionTh: "" },
+    { id: 14, name: "Mozzarella Bowl", nameTh: "ชามมอสซาเรลลา", price: 45000, description: "Cubes in olive oil, lime & mint", descriptionTh: "" },
+    { id: 15, name: "Saucisson Bowl — France", nameTh: "ชามซอสซิสซอง — ฝรั่งเศส", price: 60000, description: "Air-dried pork saucisson, hand-sliced", descriptionTh: "" },
+  ]},
+  { name: "Sandwiches", items: [
+    { id: 8, name: "Traditional Pâté Sandwich", nameTh: "แซนด์วิชพาสต้าแบบดั้งเดิม", price: 75000, description: "Pork & liver pâté, house pickles, served in a half French baguette", descriptionTh: "" },
+    { id: 9, name: "Chicken Rillettes Sandwich", nameTh: "แซนด์วิชริยองไก่", price: 90000, description: "Slow-cooked rillettes, pickles, served in a half French baguette", descriptionTh: "" },
+    { id: 10, name: "Eggplant Caviar with Sweet Paprika Sandwich", nameTh: "แซนด์วิชคาเวียร์มะเขือกับพริกหวาน", price: 90000, description: "Roasted eggplant, paprika & seeds, served in a half French baguette", descriptionTh: "" },
+    { id: 11, name: "Green Olive Tapenade Sandwich", nameTh: "แซนด์วิชทาเปนาด์โอลีฟเขียว", price: 115000, description: "A house-crafted green olive tapenade...", descriptionTh: "" },
+    { id: 34, name: "Ham, butter and cornichons Sandwich", nameTh: "แซนด์วิชแฮม เนย และคอร์นิชอง", price: 105000, description: "Ham layered with creamy butter and crisp cornichons...", descriptionTh: "" },
+    { id: 35, name: "Butter and Comté Sandwich", nameTh: "แซนด์วิชเนยและกงเต", price: 150000, description: "Silky butter and aged Comté cheese...", descriptionTh: "" },
+  ]},
+  { name: "Platters", items: [
+    { id: 16, name: "Charcuterie Platter (120g)", nameTh: "จานเนื้อและไส้กรอก (120 กรัม)", price: 190000, description: "House delicatessen, French baguette, pickles & butter", descriptionTh: "" },
+    { id: 17, name: "Cheese Platter (100g)", nameTh: "จานชีส (100 กรัม)", price: 265000, description: "Fine French cheeses, French baguette, pickles & butter", descriptionTh: "" },
+    { id: 18, name: "Mixed Platter (75g cheese / 100g meat)", nameTh: "จานรวม (ชีส 75 กรัม / เนื้อ 100 กรัม)", price: 320000, description: "Cheeses & delicatessen, French baguette, pickles & butter", descriptionTh: "" },
+  ]},
+  { name: "Main Courses", items: [
+    { id: 19, name: "Slow-Braised Chicken in Dark Beer", nameTh: "ไก่ตุ๋นเบียร์ดำ", price: 150000, description: "Chicken slowly braised in dark beer...", descriptionTh: "" },
+    { id: 20, name: "Slow-Braised Pork in Caramel Sauce", nameTh: "หมูตุ๋นซอสคาราเมล", price: 150000, description: "Pieces of Pork simmered in caramel sauce...", descriptionTh: "" },
+  ]},
+  { name: "French Wines", items: [
+    { id: 33, name: "Camille de Labrie – Saint-Émilion (Red, 750 mL)", nameTh: "ไวน์ Camille de Labrie – Saint-Émilion (แดง 750 มล.)", price: 710000, description: "A refined Saint-Émilion...", descriptionTh: "" },
+  ]},
+  { name: "DRINKS", items: [
+    { id: 36, name: "Choco Shake", nameTh: "ช็อกโกแลตเชค", price: 35000, description: "", descriptionTh: "" },
+  ]},
+  { name: "Pizza Baguette", items: [
+    { id: 21, name: "Pizza Baguette", nameTh: "พิซซ่าบาแกตต์", price: 120000, description: "Crispy French baguette, tomato sauce, mozzarella & oregano", descriptionTh: "", isPizzaTopping: false },
+    { id: 22, name: "Blue Cheese", nameTh: "เบลูชีส", price: 50000, description: "", descriptionTh: "", isPizzaTopping: true },
+    { id: 23, name: "Raclette Cheese", nameTh: "ราคเล็ตชีส", price: 95000, description: "", descriptionTh: "", isPizzaTopping: true },
+    { id: 24, name: "Olive Oil", nameTh: "น้ำมันโอลีฟ", price: 30000, description: "", descriptionTh: "", isPizzaTopping: true },
+    { id: 25, name: "Olive", nameTh: "โอลีฟ", price: 35000, description: "", descriptionTh: "", isPizzaTopping: true },
+    { id: 26, name: "Oignons", nameTh: "หอมใหญ่", price: 10000, description: "", descriptionTh: "", isPizzaTopping: true },
+    { id: 27, name: "Potato", nameTh: "มันฝรั่ง", price: 10000, description: "", descriptionTh: "", isPizzaTopping: true },
+    { id: 28, name: "Ham", nameTh: "แฮม", price: 45000, description: "", descriptionTh: "", isPizzaTopping: true },
+    { id: 29, name: "Bacon", nameTh: "เบคอน", price: 45000, description: "", descriptionTh: "", isPizzaTopping: true },
+    { id: 30, name: "Dry Sausage", nameTh: "ไส้กรอกแห้ง", price: 60000, description: "", descriptionTh: "", isPizzaTopping: true },
+    { id: 31, name: "Cured Pork", nameTh: "หมูแฮม", price: 60000, description: "", descriptionTh: "", isPizzaTopping: true },
+    { id: 32, name: "Reblochon", nameTh: "เรโบลชง", price: 95000, description: "", descriptionTh: "", isPizzaTopping: true },
+  ]},
+];
+
+function normalizeItem(it) {
+  return {
+    id: typeof it.id === "number" ? it.id : parseInt(it.id, 10) || 0,
+    name: String(it.name ?? ""),
+    nameTh: String(it.nameTh ?? ""),
+    price: typeof it.price === "number" ? it.price : parseInt(it.price, 10) || 0,
+    description: String(it.description ?? ""),
+    descriptionTh: String(it.descriptionTh ?? ""),
+    ...(it.isPizzaTopping === true ? { isPizzaTopping: true } : {}),
+  };
+}
+function normalizeMenu(categories) {
+  if (!Array.isArray(categories)) return DEFAULT_MENU;
+  return categories.map((cat) => ({
+    name: String(cat.name ?? "Category"),
+    items: Array.isArray(cat.items) ? cat.items.map(normalizeItem) : [],
+  }));
+}
+
+const menuCategories = ref(normalizeMenu(JSON.parse(JSON.stringify(DEFAULT_MENU))));
+
+const isAdmin = computed(() => typeof sessionStorage !== "undefined" && sessionStorage.getItem("adminAuthenticated") === "true");
+const showEditMenu = ref(false);
+const editCategories = ref([]);
+const showSavePinModal = ref(false);
+const savePin = ref("");
+const savePinError = ref("");
+const menuSaveLoading = ref(false);
+
+function openEditMenu() {
+  editCategories.value = JSON.parse(JSON.stringify(menuCategories.value));
+  editCategories.value = editCategories.value.map((c) => ({
+    name: c.name,
+    items: (c.items || []).map((it) => ({ ...normalizeItem(it) })),
+  }));
+  showEditMenu.value = true;
+}
+function closeEditMenu() {
+  showEditMenu.value = false;
+}
+
+function getAllItemIds() {
+  const ids = [];
+  for (const cat of editCategories.value) {
+    for (const it of cat.items || []) ids.push(it.id);
   }
-]);
+  return ids;
+}
+function nextItemId() {
+  const ids = getAllItemIds();
+  return ids.length ? Math.max(...ids) + 1 : 1;
+}
+
+function addCategory() {
+  editCategories.value.push({ name: "New Category", items: [] });
+}
+function removeCategory(idx) {
+  editCategories.value.splice(idx, 1);
+}
+function moveCategoryUp(idx) {
+  if (idx <= 0) return;
+  const arr = editCategories.value;
+  [arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]];
+}
+function moveCategoryDown(idx) {
+  if (idx < 0 || idx >= editCategories.value.length - 1) return;
+  const arr = editCategories.value;
+  [arr[idx], arr[idx + 1]] = [arr[idx + 1], arr[idx]];
+}
+function setCategoryName(idx, name) {
+  if (editCategories.value[idx]) editCategories.value[idx].name = String(name ?? "").trim() || editCategories.value[idx].name;
+}
+
+function addItem(catIdx) {
+  const cat = editCategories.value[catIdx];
+  if (!cat) return;
+  if (!cat.items) cat.items = [];
+  cat.items.push({
+    id: nextItemId(),
+    name: "New item",
+    nameTh: "",
+    price: 0,
+    description: "",
+    descriptionTh: "",
+  });
+}
+function removeItem(catIdx, itemIdx) {
+  const cat = editCategories.value[catIdx];
+  if (!cat || !cat.items) return;
+  cat.items.splice(itemIdx, 1);
+}
+function setItemField(catIdx, itemIdx, field, value) {
+  const cat = editCategories.value[catIdx];
+  const item = cat?.items?.[itemIdx];
+  if (!item) return;
+  if (field === "price") {
+    const n = parseInt(value, 10);
+    item.price = Number.isNaN(n) ? 0 : n;
+  } else if (["name", "nameTh", "description", "descriptionTh"].includes(field)) {
+    item[field] = String(value ?? "");
+  }
+}
+
+function openSavePinModal() {
+  savePin.value = "";
+  savePinError.value = "";
+  showSavePinModal.value = true;
+}
+function cancelSavePin() {
+  showSavePinModal.value = false;
+  savePin.value = "";
+  savePinError.value = "";
+}
+async function confirmSaveMenu() {
+  savePinError.value = "";
+  const pin = String(savePin.value ?? "").trim();
+  if (!pin) {
+    savePinError.value = "Enter admin PIN";
+    return;
+  }
+  menuSaveLoading.value = true;
+  try {
+    const payload = editCategories.value.map((c) => ({
+      name: String(c.name ?? "").trim() || "Category",
+      items: (c.items || []).map((it) => normalizeItem(it)),
+    }));
+    await putDeliveryMenu(payload, pin);
+    cancelSavePin();
+    menuCategories.value = JSON.parse(JSON.stringify(payload));
+    closeEditMenu();
+  } catch (e) {
+    savePinError.value = e.response?.data?.message || "Failed to save (check PIN)";
+  } finally {
+    menuSaveLoading.value = false;
+  }
+}
 
 const settings = ref({
   whatsappDelivery: "41793917577",
@@ -123,6 +236,13 @@ onMounted(async () => {
   } catch (_) {
     guesthouseList.value = [];
   }
+  try {
+    const menuRes = await getDeliveryMenu();
+    const menu = menuRes.data?.menu;
+    if (Array.isArray(menu) && menu.length > 0) {
+      menuCategories.value = normalizeMenu(menu);
+    }
+  } catch (_) {}
 });
 
 const orderType = ref("delivery");
@@ -437,7 +557,10 @@ const resetOrder = () => {
 
     <div class="content-wrapper">
       <div class="menu-section">
-        <h2>Our Menu</h2>
+        <div class="menu-section-header">
+          <h2>Our Menu</h2>
+          <button v-if="isAdmin" type="button" class="edit-menu-btn" @click="openEditMenu">EDIT MENU</button>
+        </div>
         <div v-for="category in menuCategories" :key="category.name" class="menu-category">
           <h3>{{ category.name }}</h3>
           <div class="menu-items">
@@ -559,6 +682,64 @@ const resetOrder = () => {
       </div>
     </div>
 
+    <!-- Edit Menu overlay (admin) -->
+    <Teleport to="body">
+      <Transition name="edit-fade">
+        <div v-if="showEditMenu" class="edit-menu-overlay" role="dialog" aria-label="Edit delivery menu">
+          <div class="edit-menu-panel">
+            <div class="edit-menu-header">
+              <h2>Edit Menu</h2>
+              <button type="button" class="edit-menu-close" aria-label="Close" @click="closeEditMenu">×</button>
+            </div>
+            <div class="edit-menu-body">
+              <div v-for="(cat, cIdx) in editCategories" :key="cIdx" class="edit-category-block">
+                <div class="edit-category-header">
+                  <div class="edit-category-move">
+                    <button type="button" class="edit-icon-btn" :disabled="cIdx === 0" @click="moveCategoryUp(cIdx)" title="Move up">↑</button>
+                    <button type="button" class="edit-icon-btn" :disabled="cIdx === editCategories.length - 1" @click="moveCategoryDown(cIdx)" title="Move down">↓</button>
+                  </div>
+                  <input v-model="cat.name" type="text" class="edit-category-name" placeholder="Category name" />
+                  <button type="button" class="edit-remove-cat" @click="removeCategory(cIdx)">Remove category</button>
+                </div>
+                <div class="edit-items">
+                  <div v-for="(item, iIdx) in (cat.items || [])" :key="item.id" class="edit-item-row">
+                    <input v-model="item.name" type="text" class="edit-item-input" placeholder="Name (EN)" />
+                    <input v-model="item.nameTh" type="text" class="edit-item-input edit-item-th" placeholder="Name (TH)" />
+                    <input v-model="item.description" type="text" class="edit-item-input edit-item-desc" placeholder="Description (EN)" />
+                    <input :value="item.price" type="number" min="0" class="edit-item-price" placeholder="Price" @input="setItemField(cIdx, iIdx, 'price', $event.target.value)" />
+                    <button type="button" class="edit-remove-item" @click="removeItem(cIdx, iIdx)">×</button>
+                  </div>
+                  <button type="button" class="edit-add-item" @click="addItem(cIdx)">+ Add item</button>
+                </div>
+              </div>
+              <button type="button" class="edit-add-cat" @click="addCategory">+ Add category</button>
+            </div>
+            <div class="edit-menu-footer">
+              <button type="button" class="edit-cancel-btn" @click="closeEditMenu">Cancel</button>
+              <button type="button" class="edit-save-btn" @click="openSavePinModal">Save to DB</button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
+    <!-- Save PIN modal (for saving menu) -->
+    <Teleport to="body">
+      <Transition name="edit-fade">
+        <div v-if="showSavePinModal" class="save-pin-overlay" role="dialog" aria-label="Enter PIN to save menu">
+          <div class="save-pin-box">
+            <h3>Enter admin PIN to save menu</h3>
+            <input v-model="savePin" type="password" inputmode="numeric" placeholder="PIN" class="save-pin-input" />
+            <p v-if="savePinError" class="save-pin-error">{{ savePinError }}</p>
+            <div class="save-pin-btns">
+              <button type="button" class="edit-cancel-btn" @click="cancelSavePin">Cancel</button>
+              <button type="button" class="edit-save-btn" :disabled="menuSaveLoading" @click="confirmSaveMenu">{{ menuSaveLoading ? "Saving…" : "Save" }}</button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
     <div class="payment-info">
       <h3>Payment Options</h3>
       <template v-if="orderType === 'delivery'">
@@ -650,7 +831,11 @@ const resetOrder = () => {
 .hours-banner .outside-hours { color: #888; font-size: 0.9rem; }
 .content-wrapper { display: grid; grid-template-columns: 1fr; gap: 30px; }
 @media screen and (min-width: 768px) { .content-wrapper { grid-template-columns: 1fr 400px; } }
-.menu-section h2 { font-family: "Montserrat-Bold"; margin-bottom: 20px; color: #fff; text-transform: uppercase; letter-spacing: 2px; }
+.menu-section-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+.menu-section-header h2 { margin: 0; }
+.menu-section h2 { font-family: "Montserrat-Bold"; color: #fff; text-transform: uppercase; letter-spacing: 2px; }
+.edit-menu-btn { padding: 10px 20px; background: #ffc300; color: #000; border: none; border-radius: 8px; font-family: "Montserrat-Medium"; font-size: 0.95rem; cursor: pointer; }
+.edit-menu-btn:hover { background: #e6b000; }
 .menu-category { margin-bottom: 30px; }
 .menu-category h3 { font-family: "Montserrat-Bold"; color: #ffc300; font-size: 1.2em; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #222; text-transform: uppercase; letter-spacing: 2px; }
 .menu-items { display: flex; flex-direction: column; gap: 10px; }
@@ -840,4 +1025,61 @@ const resetOrder = () => {
 .payments-fade-leave-active { transition: opacity 0.2s ease; }
 .payments-fade-enter-from,
 .payments-fade-leave-to { opacity: 0; }
+
+/* Edit menu overlay */
+.edit-fade-enter-active,
+.edit-fade-leave-active { transition: opacity 0.2s ease; }
+.edit-fade-enter-from,
+.edit-fade-leave-to { opacity: 0; }
+.edit-menu-overlay {
+  position: fixed; inset: 0; z-index: 9998; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; overflow: auto;
+}
+.edit-menu-panel {
+  background: #1a1a1a; border: 1px solid #333; border-radius: 12px; max-width: 900px; width: 100%; max-height: 90vh; display: flex; flex-direction: column;
+}
+.edit-menu-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #333; }
+.edit-menu-header h2 { margin: 0; font-family: "Montserrat-Bold"; color: #ffc300; font-size: 1.3rem; }
+.edit-menu-close { width: 36px; height: 36px; border: none; background: #333; color: #fff; border-radius: 8px; font-size: 1.5rem; cursor: pointer; line-height: 1; }
+.edit-menu-close:hover { background: #444; }
+.edit-menu-body { padding: 20px; overflow-y: auto; flex: 1; }
+.edit-category-block { margin-bottom: 24px; padding: 16px; background: #0a0a0a; border-radius: 10px; border: 1px solid #222; }
+.edit-category-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+.edit-category-move { display: flex; gap: 4px; }
+.edit-icon-btn { width: 36px; height: 36px; border: 1px solid #333; background: #111; color: #fff; border-radius: 6px; cursor: pointer; font-size: 1rem; }
+.edit-icon-btn:hover:not(:disabled) { background: #222; border-color: #ffc300; color: #ffc300; }
+.edit-icon-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.edit-category-name { flex: 1; min-width: 180px; padding: 10px 12px; border: 1px solid #333; border-radius: 8px; background: #111; color: #fff; font-size: 1rem; }
+.edit-category-name:focus { outline: none; border-color: #ffc300; }
+.edit-remove-cat { padding: 8px 14px; background: rgba(239,68,68,0.2); color: #fca5a5; border: 1px solid #ef4444; border-radius: 8px; cursor: pointer; font-size: 0.9rem; }
+.edit-remove-cat:hover { background: rgba(239,68,68,0.3); }
+.edit-items { display: flex; flex-direction: column; gap: 10px; }
+.edit-item-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.edit-item-row .edit-item-input { flex: 1; min-width: 120px; }
+.edit-item-row .edit-item-desc { flex: 1 1 100%; min-width: 0; }
+.edit-item-row .edit-item-price { width: 90px; flex-shrink: 0; }
+.edit-item-row .edit-remove-item { flex-shrink: 0; }
+.edit-item-input, .edit-item-price { padding: 8px 10px; border: 1px solid #333; border-radius: 6px; background: #111; color: #fff; font-size: 0.9rem; }
+.edit-item-input:focus, .edit-item-price:focus { outline: none; border-color: #ffc300; }
+.edit-item-th { direction: ltr; }
+.edit-item-price { width: 100%; }
+.edit-remove-item { width: 36px; height: 36px; border: none; background: #ef4444; color: #fff; border-radius: 6px; cursor: pointer; font-size: 1.2rem; line-height: 1; }
+.edit-remove-item:hover { background: #dc2626; }
+.edit-add-item { margin-top: 8px; padding: 8px 14px; background: #222; color: #ffc300; border: 1px dashed #444; border-radius: 8px; cursor: pointer; font-size: 0.9rem; }
+.edit-add-item:hover { background: #333; }
+.edit-add-cat { padding: 12px 20px; background: #222; color: #ffc300; border: 1px dashed #444; border-radius: 8px; cursor: pointer; font-size: 1rem; width: 100%; }
+.edit-add-cat:hover { background: #333; }
+.edit-menu-footer { display: flex; justify-content: flex-end; gap: 12px; padding: 16px 20px; border-top: 1px solid #333; }
+.edit-cancel-btn { padding: 10px 20px; background: #333; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-family: "Montserrat-Light"; }
+.edit-cancel-btn:hover { background: #444; }
+.edit-save-btn { padding: 10px 24px; background: #ffc300; color: #000; border: none; border-radius: 8px; cursor: pointer; font-family: "Montserrat-Medium"; }
+.edit-save-btn:hover:not(:disabled) { background: #e6b000; }
+.edit-save-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+
+.save-pin-overlay { position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; padding: 20px; }
+.save-pin-box { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 24px; min-width: 280px; }
+.save-pin-box h3 { margin: 0 0 16px 0; font-family: "Montserrat-Bold"; color: #fff; font-size: 1.1rem; }
+.save-pin-input { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #333; border-radius: 8px; background: #111; color: #fff; font-size: 1.2rem; text-align: center; box-sizing: border-box; }
+.save-pin-input:focus { outline: none; border-color: #ffc300; }
+.save-pin-error { margin: 0 0 12px 0; color: #ef4444; font-size: 0.9rem; }
+.save-pin-btns { display: flex; gap: 12px; justify-content: flex-end; }
 </style>
