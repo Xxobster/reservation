@@ -46,17 +46,20 @@ const patchHandler = (req, res) => {
     "pickupEndTime",
     "reservationDurationRacletteMin",
     "reservationDurationStandardMin",
+    "fondueAvailable",
+    "racletteAvailable",
     "notifyEmailAfterTime",
     "reservationNotifyEmails",
     "notifyDeliveryEmailAfterTime",
     "deliveryNotifyEmails",
     "deliveryFeeGuesthouseLAK",
     "deliveryFeeDeliveryPersonLAK",
+    "deliveryFeeSMLAK",
   ];
   const current = readSettings();
   for (const key of allowed) {
     if (body[key] !== undefined) {
-      if (["reservationsEnabled", "deliveryEnabled", "pickupEnabled"].includes(key)) {
+      if (["reservationsEnabled", "deliveryEnabled", "pickupEnabled", "fondueAvailable", "racletteAvailable"].includes(key)) {
         current[key] = Boolean(body[key]);
       } else if (key.startsWith("whatsapp")) {
         current[key] = String(body[key]).replace(/\D/g, "") || current[key];
@@ -68,7 +71,7 @@ const patchHandler = (req, res) => {
       } else if (key === "reservationDurationRacletteMin" || key === "reservationDurationStandardMin") {
         const n = parseInt(body[key], 10);
         if (!isNaN(n) && n >= 15 && n <= 480) current[key] = n;
-      } else if (key === "deliveryFeeGuesthouseLAK" || key === "deliveryFeeDeliveryPersonLAK") {
+      } else if (key === "deliveryFeeGuesthouseLAK" || key === "deliveryFeeDeliveryPersonLAK" || key === "deliveryFeeSMLAK") {
         const n = parseInt(body[key], 10);
         if (!isNaN(n) && n >= 0 && n <= 10000000) current[key] = n;
       }

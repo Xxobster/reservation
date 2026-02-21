@@ -538,8 +538,7 @@ const editReservation = async (reservationId, reservationDAO, payload) => {
       message: "Reservation not found!",
     };
 
-  validateTime(new Date(), payload.resDate, payload.resTime);
-  checkClosingOpeningTime(payload.resTime);
+  // No time/date limitations when editing (admin can change to past or any time)
   if (payload.durationMin != null) checkDurationMin(payload.durationMin);
   if (payload.people != null) {
     const p = Number(payload.people);

@@ -227,6 +227,7 @@ onMounted(async () => {
       pickupEndTime: d.pickupEndTime || "21:00",
       deliveryFeeGuesthouseLAK: typeof d.deliveryFeeGuesthouseLAK === "number" ? d.deliveryFeeGuesthouseLAK : 30000,
       deliveryFeeDeliveryPersonLAK: typeof d.deliveryFeeDeliveryPersonLAK === "number" ? d.deliveryFeeDeliveryPersonLAK : 20000,
+      deliveryFeeSMLAK: typeof d.deliveryFeeSMLAK === "number" ? d.deliveryFeeSMLAK : 10000,
     };
   } catch (_) {}
   try {
@@ -357,7 +358,8 @@ const removeAllFromBasket = (itemId) => {
 
 const deliveryFeeGuesthouseLAK = computed(() => settings.value.deliveryFeeGuesthouseLAK ?? 30000);
 const deliveryFeeDeliveryPersonLAK = computed(() => settings.value.deliveryFeeDeliveryPersonLAK ?? 20000);
-const deliveryFeeTotalLAK = computed(() => (deliveryFeeGuesthouseLAK.value || 0) + (deliveryFeeDeliveryPersonLAK.value || 0));
+const deliveryFeeSMLAK = computed(() => settings.value.deliveryFeeSMLAK ?? 10000);
+const deliveryFeeTotalLAK = computed(() => (deliveryFeeGuesthouseLAK.value || 0) + (deliveryFeeDeliveryPersonLAK.value || 0) + (deliveryFeeSMLAK.value || 0));
 
 const basketSubtotal = computed(() => basket.value.reduce((total, item) => total + (item.price * item.quantity), 0));
 const basketTotal = computed(() =>
@@ -613,6 +615,10 @@ const resetOrder = () => {
             <div class="basket-fee-line">
               <span>Delivery fee (delivery person)</span>
               <span class="fee-price">{{ formatPrice(deliveryFeeDeliveryPersonLAK) }}</span>
+            </div>
+            <div class="basket-fee-line">
+              <span>Delivery fee (S&M)</span>
+              <span class="fee-price">{{ formatPrice(deliveryFeeSMLAK) }}</span>
             </div>
           </div>
 

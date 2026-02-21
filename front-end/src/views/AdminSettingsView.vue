@@ -45,12 +45,15 @@ const form = ref({
   pickupEndTime: "21:00",
   reservationDurationRacletteMin: 120,
   reservationDurationStandardMin: 60,
+  fondueAvailable: true,
+  racletteAvailable: true,
   notifyEmailAfterTime: "11:00",
   reservationNotifyEmails: "",
   notifyDeliveryEmailAfterTime: "11:00",
   deliveryNotifyEmails: "",
   deliveryFeeGuesthouseLAK: 30000,
   deliveryFeeDeliveryPersonLAK: 20000,
+  deliveryFeeSMLAK: 10000,
 });
 
 const load = async () => {
@@ -72,12 +75,15 @@ const load = async () => {
       pickupEndTime: d.pickupEndTime ?? "21:00",
       reservationDurationRacletteMin: d.reservationDurationRacletteMin ?? 120,
       reservationDurationStandardMin: d.reservationDurationStandardMin ?? 60,
+      fondueAvailable: d.fondueAvailable !== false,
+      racletteAvailable: d.racletteAvailable !== false,
       notifyEmailAfterTime: d.notifyEmailAfterTime ?? "11:00",
       reservationNotifyEmails: d.reservationNotifyEmails ?? "",
       notifyDeliveryEmailAfterTime: d.notifyDeliveryEmailAfterTime ?? "11:00",
       deliveryNotifyEmails: d.deliveryNotifyEmails ?? "",
       deliveryFeeGuesthouseLAK: d.deliveryFeeGuesthouseLAK ?? 30000,
       deliveryFeeDeliveryPersonLAK: d.deliveryFeeDeliveryPersonLAK ?? 20000,
+      deliveryFeeSMLAK: d.deliveryFeeSMLAK ?? 10000,
     };
   } catch (e) {
     error.value = e.response?.data?.message || "Failed to load settings.";
@@ -160,6 +166,25 @@ onMounted(load);
         </section>
 
         <section class="section">
+          <h2>Menu availability (new reservation page)</h2>
+          <p class="hint">When ON, the Fondue / Raclette checkbox is shown on <a href="/new-reservation" target="_blank" rel="noopener" class="link">/new-reservation</a>. When OFF, that option is hidden.</p>
+          <div class="toggle-row">
+            <span class="toggle-label">Fondue available</span>
+            <label class="toggle-wrap">
+              <input v-model="form.fondueAvailable" type="checkbox" class="toggle-input" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="toggle-row">
+            <span class="toggle-label">Raclette available</span>
+            <label class="toggle-wrap">
+              <input v-model="form.racletteAvailable" type="checkbox" class="toggle-input" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </section>
+
+        <section class="section">
           <h2>Table reservation durations</h2>
           <p class="hint">Time (in minutes) that a table is booked when a customer reserves. Affects availability and displayed end time.</p>
           <div class="time-row">
@@ -237,6 +262,8 @@ onMounted(load);
             </div>
           </div>
           <p class="hint">Outside these hours customers cannot add items to the basket (delivery).</p>
+          <h3 class="subheading">Delivery fees (shown on Delivery page)</h3>
+          <p class="hint">These amounts are shown in the basket on <a href="/delivery" target="_blank" rel="noopener" class="link">/delivery</a>. Total fee = Guesthouse + Delivery person. Save settings to update the delivery page.</p>
           <div class="time-row">
             <div class="field">
               <label>Delivery fee – Guesthouse (LAK)</label>
@@ -246,8 +273,11 @@ onMounted(load);
               <label>Delivery fee – Delivery person (LAK)</label>
               <input v-model.number="form.deliveryFeeDeliveryPersonLAK" type="number" min="0" step="1000" class="input input-number" />
             </div>
+            <div class="field">
+              <label>Delivery fee – S&M (LAK)</label>
+              <input v-model.number="form.deliveryFeeSMLAK" type="number" min="0" step="1000" class="input input-number" />
+            </div>
           </div>
-          <p class="hint">Total delivery fee shown to customer = Guesthouse + Delivery person. Guesthouse fee is used for weekly bills per guesthouse.</p>
         </section>
 
         <section class="section">
@@ -332,7 +362,10 @@ onMounted(load);
   border-bottom: 1px solid #222;
 }
 .section h2 { font-family: "Montserrat-Bold"; color: #ffc300; font-size: 1.1rem; margin: 0 0 12px 0; text-transform: uppercase; letter-spacing: 1px; }
+.section h3.subheading { font-family: "Montserrat-Bold"; color: #ddd; font-size: 1rem; margin: 14px 0 6px 0; }
 .hint { color: #666; font-size: 0.85rem; margin: 6px 0 12px 0; }
+.hint .link { color: #ffc300; text-decoration: none; }
+.hint .link:hover { text-decoration: underline; }
 .hint code { background: #222; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.85em; }
 .field { margin-bottom: 14px; }
 .field label { display: block; margin-bottom: 6px; font-size: 0.9rem; color: #ccc; }

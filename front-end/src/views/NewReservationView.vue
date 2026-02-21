@@ -31,6 +31,8 @@ const confirmationData = ref(null);
 const reservationsWhatsappDisplay = ref("+41 79 391 75 77");
 const reservationsWhatsappUrl = ref("https://wa.me/41793917577");
 const reservationsEnabled = ref(true);
+const fondueAvailable = ref(true);
+const racletteAvailable = ref(true);
 const settingsLoading = ref(true);
 const showPaymentsFullscreen = ref(false);
 
@@ -42,8 +44,12 @@ onMounted(async () => {
     reservationsWhatsappUrl.value = `https://wa.me/${num}`;
     reservationsWhatsappDisplay.value = num.startsWith("41") ? `+41 ${num.slice(2, 4)} ${num.slice(4, 7)} ${num.slice(7, 9)} ${num.slice(9, 11)}` : `+${num}`;
     reservationsEnabled.value = d.reservationsEnabled !== false;
+    fondueAvailable.value = d.fondueAvailable !== false;
+    racletteAvailable.value = d.racletteAvailable !== false;
   } catch (_) {
     reservationsEnabled.value = true;
+    fondueAvailable.value = true;
+    racletteAvailable.value = true;
   } finally {
     settingsLoading.value = false;
   }
@@ -286,13 +292,13 @@ const resetForm = () => {
           v-model:input="reservation.people"
         />
 
-        <!-- Raclette / Fondue (replaces Table Type dropdown) -->
-        <div class="checkbox-group">
-          <label class="checkbox-label">
+        <!-- Raclette / Fondue – shown only when enabled in Admin Settings -->
+        <div class="checkbox-group" v-if="fondueAvailable || racletteAvailable">
+          <label class="checkbox-label" v-if="racletteAvailable">
             <input type="checkbox" v-model="racletteChecked" />
             <span>Raclette <span class="fondue-note">(Shared table)</span></span>
           </label>
-          <label class="checkbox-label">
+          <label class="checkbox-label" v-if="fondueAvailable">
             <input type="checkbox" v-model="fondueChecked" />
             <span>Fondue <span class="fondue-note">(Served in 450g portions, ideal for 2 people.)</span></span>
           </label>
