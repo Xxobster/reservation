@@ -1,0 +1,16 @@
+{"location":"NewReservationView.vue:registerReservation:catch","message":"catch block","data":{"errMessage":"Request failed with status code 502","status":502,"hasResponse":true},"timestamp":1770462757601,"hypothesisId":"H3,H4"}
+{"location":"NewReservationView.vue:registerReservation:beforeApi","message":"calling API","data":{},"timestamp":1770462757316,"hypothesisId":"H3"}
+{"location":"NewReservationView.vue:registerReservation:entry","message":"registerReservation called","data":{"people":"2"},"timestamp":1770462757315,"hypothesisId":"H1"}
+{"location":"reservationAPI.js:registerReservation","message":"POST /reservations","data":{"baseURL":"/api/v1"},"timestamp":1770462757316,"hypothesisId":"H3,H5"}
+{"location":"NewReservationView.vue:registerReservation:entry","message":"registerReservation called","data":{"people":"2"},"timestamp":1770462787074,"hypothesisId":"H1"}
+{"location":"NewReservationView.vue:registerReservation:beforeApi","message":"calling API","data":{},"timestamp":1770462787074,"hypothesisId":"H3"}
+{"location":"reservationAPI.js:registerReservation","message":"POST /reservations","data":{"baseURL":"/api/v1"},"timestamp":1770462787074,"hypothesisId":"H3,H5"}
+{"location":"NewReservationView.vue:registerReservation:catch","message":"catch block","data":{"errMessage":"Request failed with status code 502","status":502,"hasResponse":true},"timestamp":1770462787341,"hypothesisId":"H3,H4"}
+{"location":"NewReservationView.vue:registerReservation:beforeApi","message":"calling API","data":{},"timestamp":1770462788259,"hypothesisId":"H3"}
+{"location":"reservationAPI.js:registerReservation","message":"POST /reservations","data":{"baseURL":"/api/v1"},"timestamp":1770462788259,"hypothesisId":"H3,H5"}
+{"location":"NewReservationView.vue:registerReservation:entry","message":"registerReservation called","data":{"people":"2"},"timestamp":1770462788258,"hypothesisId":"H1"}
+{"location":"NewReservationView.vue:registerReservation:catch","message":"catch block","data":{"errMessage":"Request failed with status code 502","status":502,"hasResponse":true},"timestamp":1770462788525,"hypothesisId":"H3,H4"}
+{"location":"NewReservationView.vue:registerReservation:entry","message":"registerReservation called","data":{"people":"2"},"timestamp":1770462789135,"hypothesisId":"H1"}
+{"location":"NewReservationView.vue:registerReservation:beforeApi","message":"calling API","data":{},"timestamp":1770462789135,"hypothesisId":"H3"}
+{"location":"reservationAPI.js:registerReservation","message":"POST /reservations","data":{"baseURL":"/api/v1"},"timestamp":1770462789136,"hypothesisId":"H3,H5"}
+{"location":"NewReservationView.vue:registerReservation:catch","message":"catch block","data":{"errMessage":"Request failed with status code 502","status":502,"hasResponse":true},"timestamp":1770462789414,"hypothesisId":"H3,H4"}

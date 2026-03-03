@@ -1,6 +1,8 @@
 <script setup>
 // Menu images: 1.png, 2.png, 3.png, ... (in public/img/menu/)
-const MENU_IMAGE_COUNT = 8;
+// Set this to any number >= the max images you'll ever have.
+// Sections for missing images are automatically hidden via @error.
+const MENU_IMAGE_COUNT = 30;
 const imageIndices = Array.from({ length: MENU_IMAGE_COUNT }, (_, i) => i + 1);
 </script>
 
@@ -16,7 +18,7 @@ const imageIndices = Array.from({ length: MENU_IMAGE_COUNT }, (_, i) => i + 1);
           :src="`/img/menu/${i}.png`"
           :alt="`Menu page ${i}`"
           class="menu-image"
-          @error="($event.target.style.display = 'none')"
+          @error="($event.target.closest('.menu-section').style.display = 'none')"
         />
       </section>
     </div>
